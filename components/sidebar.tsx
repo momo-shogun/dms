@@ -1,8 +1,6 @@
 "use client"
 
-import React from "react"
-
-import { useState } from "react"
+import React, { useState, useMemo } from "react"
 import {
   Home,
   FileText,
@@ -12,7 +10,7 @@ import {
   Tag,
   Hash,
   FolderOpen,
-  SettingsIcon,
+  Settings,
   UserCog,
   ListChecks,
   Mail,
@@ -24,13 +22,14 @@ import {
   MoreVertical,
   Edit2,
   Trash2,
+  Sparkles,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useData } from "@/lib/data-context"
 import { CreateSectionDialog } from "@/components/dialogs/create-section-dialog"
 import { CreateFolderDialog } from "@/components/dialogs/create-folder-dialog"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 
 interface SidebarProps {
   activeView: string
@@ -41,6 +40,7 @@ interface SidebarProps {
 
 const Sidebar = ({ activeView, onViewChange, activeFolder, onFolderChange }: SidebarProps) => {
   const { sections, deleteSection, deleteFolder } = useData()
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(sections.map(s => s.id)))
   const [documentsExpanded, setDocumentsExpanded] = useState(true)
   const [sectionCreateDialogOpen, setSectionCreateDialogOpen] = useState(false)
   const [folderCreateDialogOpen, setFolderCreateDialogOpen] = useState(false)
@@ -48,28 +48,33 @@ const Sidebar = ({ activeView, onViewChange, activeFolder, onFolderChange }: Sid
   const [editingSection, setEditingSection] = useState<{ id: string; name: string } | null>(null)
   const [editingFolder, setEditingFolder] = useState<{ id: string; name: string } | null>(null)
 
-  const navItems = [
+  // Toggle section expansion
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => {
+      const next = new Set(prev)
+      if (next.has(sectionId)) {
+        next.delete(sectionId)
+      } else {
+        next.add(sectionId)
+      }
+      return next
+    })
+  }
+
+  // Navigation items
+  const navItems = useMemo(() => [
     { id: "dashboard", label: "Dashboard", icon: Home },
-    { id: "documents", label: "Documents", icon: FileText },
-  ]
+    { id: "documents", label: "Main Section", icon: FileText },
+  ], [])
 
-  const folders = [
-    { id: "inbox", label: "Inbox", icon: Inbox, hasEmail: true },
-    { id: "team", label: "#team", icon: Hash },
-    { id: "projects", label: "Projects", icon: Folder },
-    { id: "finance", label: "Finance", icon: Folder },
-    { id: "human-resources", label: "Human Resources", icon: Folder },
-    { id: "operations", label: "Operations", icon: Folder },
-    { id: "legal", label: "Legal", icon: Folder },
-    { id: "njj", label: "njj", icon: Folder },
-  ]
-
-  const savedViews = [
-    { id: "inbox", label: "Inbox", icon: Inbox },
+  // Saved views
+  const savedViews = useMemo(() => [
+    { id: "inbox", label: "Inbox", icon: Inbox, count: 12 },
     { id: "recent", label: "Recently Added", icon: Clock },
-  ]
+  ], [])
 
-  const manageItems = [
+  // Manage items
+  const manageItems = useMemo(() => [
     { id: "correspondents", label: "Correspondents", icon: Users },
     { id: "tags", label: "Tags", icon: Tag },
     { id: "types", label: "Document Types", icon: Hash },
@@ -77,13 +82,15 @@ const Sidebar = ({ activeView, onViewChange, activeFolder, onFolderChange }: Sid
     { id: "fields", label: "Custom Fields", icon: ListChecks },
     { id: "templates", label: "Templates", icon: FileCheck },
     { id: "mail", label: "Mail", icon: Mail },
-  ]
+  ], [])
 
-  const adminItems = [
-    { id: "settings", label: "Settings", icon: SettingsIcon },
+  // Admin items
+  const adminItems = useMemo(() => [
+    { id: "settings", label: "Settings", icon: Settings },
     { id: "users", label: "Users & Groups", icon: UserCog },
-  ]
+  ], [])
 
+  // Handlers
   const handleCreateSection = () => {
     setEditingSection(null)
     setSectionCreateDialogOpen(true)
@@ -106,149 +113,241 @@ const Sidebar = ({ activeView, onViewChange, activeFolder, onFolderChange }: Sid
     setFolderCreateDialogOpen(true)
   }
 
-  return (
-    <>
-      <aside className="w-60 bg-[hsl(var(--sidebar-bg))] text-[hsl(var(--sidebar-text))] min-h-screen flex flex-col">
-        <div className="p-4 border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <FileText className="h-6 w-6" />
-            <span className="font-semibold text-lg">DMS</span>
+  const handleSectionClick = (sectionId: string) => {
+    onViewChange("documents")
+    onFolderChange?.(sectionId)
+  }
+
+  const handleFolderClick = (folderId: string) => {
+    onViewChange("documents")
+    onFolderChange?.(folderId)
+  }
+
+  // Navigation item component
+  const NavItem = ({ item, isActive, onClick, children }: { 
+    item: { id: string; label: string; icon: React.ElementType }
+    isActive: boolean
+    onClick: () => void
+    children?: React.ReactNode
+  }) => {
+    const Icon = item.icon
+    return (
+      <button
+        onClick={onClick}
+        className={cn(
+          "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+          "hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+          isActive
+            ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+            : "text-sidebar-foreground/70"
+        )}
+      >
+        <Icon className="h-4 w-4 shrink-0" />
+        <span className="flex-1 text-left">{item.label}</span>
+        {children}
+      </button>
+    )
+  }
+
+  // Section item component
+  const SectionItem = ({ section }: { section: { id: string; name: string; folders: any[] } }) => {
+    const isExpanded = expandedSections.has(section.id)
+    const isActive = activeFolder === section.id
+
+    return (
+      <div className="space-y-1">
+        <div className="flex items-center justify-between group">
+          <button
+            onClick={() => handleSectionClick(section.id)}
+            className={cn(
+              "flex-1 flex items-center gap-2 px-2.5 py-2 rounded-md text-sm font-medium transition-all duration-200 text-left",
+              "hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+              isActive
+                ? "bg-sidebar-primary/20 text-sidebar-primary border-l-2 border-sidebar-primary"
+                : "text-sidebar-foreground/70"
+            )}
+          >
+            <Folder className="h-4 w-4 shrink-0" />
+            <span className="flex-1 truncate">{section.name}</span>
+            {section.folders.length > 0 && (
+              <span className="text-xs text-sidebar-foreground/50 bg-sidebar-accent/30 px-1.5 py-0.5 rounded">
+                {section.folders.length}
+              </span>
+            )}
+          </button>
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1.5 hover:bg-sidebar-accent/50 rounded-md transition-colors">
+                  <MoreVertical className="h-3.5 w-3.5 text-sidebar-foreground/60" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem
+                  onClick={() => handleEditSection({ id: section.id, name: section.name })}
+                  className="cursor-pointer"
+                >
+                  <Edit2 className="h-3.5 w-3.5 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => deleteSection(section.id)} 
+                  className="text-destructive cursor-pointer focus:text-destructive"
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {section.folders.length > 0 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleSection(section.id)
+                }}
+                className="p-1.5 hover:bg-sidebar-accent/50 rounded-md transition-colors"
+              >
+                {isExpanded ? (
+                  <ChevronDown className="h-3.5 w-3.5 text-sidebar-foreground/60" />
+                ) : (
+                  <ChevronRight className="h-3.5 w-3.5 text-sidebar-foreground/60" />
+                )}
+              </button>
+            )}
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-4">
+        {/* Folders under Section */}
+        {isExpanded && section.folders.length > 0 && (
+          <div className="ml-4 mt-1 space-y-0.5 border-l border-sidebar-border/50 pl-3">
+            {section.folders.map((folder) => {
+              const isFolderActive = activeFolder === folder.id
+              return (
+                <div key={folder.id} className="flex items-center justify-between group">
+                  <button
+                    onClick={() => handleFolderClick(folder.id)}
+                    className={cn(
+                      "flex-1 flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-all duration-200 text-left",
+                      "hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                      isFolderActive
+                        ? "bg-sidebar-primary/20 text-sidebar-primary font-medium"
+                        : "text-sidebar-foreground/60"
+                    )}
+                  >
+                    <Folder className="h-3.5 w-3.5 shrink-0" />
+                    <span className="flex-1 truncate">{folder.name}</span>
+                    {folder.documentCount > 0 && (
+                      <span className="text-xs text-sidebar-foreground/50 bg-sidebar-accent/30 px-1.5 py-0.5 rounded">
+                        {folder.documentCount}
+                      </span>
+                    )}
+                  </button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-sidebar-accent/50 rounded transition-all">
+                        <MoreVertical className="h-3.5 w-3.5 text-sidebar-foreground/60" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-40">
+                      <DropdownMenuItem
+                        onClick={() => handleEditFolder(section.id, { id: folder.id, name: folder.name })}
+                        className="cursor-pointer"
+                      >
+                        <Edit2 className="h-3.5 w-3.5 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => deleteFolder(section.id, folder.id)}
+                        className="text-destructive cursor-pointer focus:text-destructive"
+                      >
+                        <Trash2 className="h-3.5 w-3.5 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Add Folder button */}
+        <button
+          onClick={() => handleCreateFolder(section.id)}
+          className="w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/30 ml-2"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          <span>Add folder</span>
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col h-screen sticky top-0">
+        {/* Header */}
+        <div className="p-4 border-b border-sidebar-border">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-sidebar-primary/10 rounded-lg">
+              <FileText className="h-5 w-5 text-sidebar-primary" />
+            </div>
+            <div>
+              <h1 className="font-semibold text-base text-sidebar-foreground">DMS</h1>
+              <p className="text-xs text-sidebar-foreground/50">Document Management</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
           {/* Main Navigation */}
-          <div className="px-2 mb-6">
+          <div className="space-y-1">
             {navItems.map((item) => {
               const isDocuments = item.id === "documents"
+              const isActive = activeView === item.id && !isDocuments
+              
               return (
                 <div key={item.id}>
-                  <button
+                  <NavItem
+                    item={item}
+                    isActive={isActive}
                     onClick={() => {
                       if (isDocuments) {
                         setDocumentsExpanded(!documentsExpanded)
+                        // Don't navigate, just expand/collapse
+                      } else {
+                        onViewChange(item.id)
                       }
-                      onViewChange(item.id)
                     }}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2 rounded text-sm transition-colors",
-                      activeView === item.id && !isDocuments
-                        ? "bg-white/20 text-white"
-                        : "text-white/80 hover:bg-[hsl(var(--sidebar-hover))] hover:text-white",
-                    )}
                   >
-                    {isDocuments &&
-                      (documentsExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />)}
-                    {!isDocuments && <item.icon className="h-4 w-4" />}
-                    {item.label}
-                  </button>
+                    {isDocuments && (
+                      documentsExpanded ? (
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      ) : (
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      )
+                    )}
+                  </NavItem>
 
                   {/* Sections under Documents */}
                   {isDocuments && documentsExpanded && (
-                    <div className="ml-2 mt-2 space-y-1">
+                    <div className="mt-2 ml-1 space-y-2">
                       {sections.map((section) => (
-                        <div key={section.id}>
-                          <div className="flex items-center justify-between group px-1">
-                            <button
-                              onClick={() => {
-                                onViewChange("documents")
-                                onFolderChange?.(section.id)
-                              }}
-                              className="flex-1 flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors text-white/70 hover:bg-[hsl(var(--sidebar-hover))] hover:text-white text-left"
-                            >
-                              <Folder className="h-3.5 w-3.5" />
-                              <span>{section.name}</span>
-                            </button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded transition-all">
-                                  <MoreVertical className="h-3.5 w-3.5" />
-                                </button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-32">
-                                <DropdownMenuItem
-                                  onClick={() => handleEditSection({ id: section.id, name: section.name })}
-                                >
-                                  <Edit2 className="h-3.5 w-3.5 mr-2" />
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => deleteSection(section.id)} className="text-red-400">
-                                  <Trash2 className="h-3.5 w-3.5 mr-2" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-
-                          {/* Folders under Section */}
-                          {section.folders.length > 0 && (
-                            <div className="ml-6 mt-1 space-y-1">
-                              {section.folders.map((folder) => (
-                                <div key={folder.id} className="flex items-center justify-between group">
-                                  <button
-                                    onClick={() => onFolderChange?.(folder.id)}
-                                    className={cn(
-                                      "flex-1 flex items-center gap-2 px-2 py-1 rounded text-sm transition-colors text-left",
-                                      activeFolder === folder.id
-                                        ? "bg-white/20 text-white"
-                                        : "text-white/70 hover:bg-[hsl(var(--sidebar-hover))] hover:text-white",
-                                    )}
-                                  >
-                                    <Folder className="h-3.5 w-3.5 flex-shrink-0" />
-                                    <span className="truncate">{folder.name}</span>
-                                    <span className="text-xs text-white/50 ml-auto flex-shrink-0">
-                                      ({folder.documentCount})
-                                    </span>
-                                  </button>
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded transition-all">
-                                        <MoreVertical className="h-3.5 w-3.5" />
-                                      </button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-32">
-                                      <DropdownMenuItem
-                                        onClick={() =>
-                                          handleEditFolder(section.id, { id: folder.id, name: folder.name })
-                                        }
-                                      >
-                                        <Edit2 className="h-3.5 w-3.5 mr-2" />
-                                        Edit
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem
-                                        onClick={() => deleteFolder(section.id, folder.id)}
-                                        className="text-red-400"
-                                      >
-                                        <Trash2 className="h-3.5 w-3.5 mr-2" />
-                                        Delete
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Add Folder button */}
-                          <button
-                            onClick={() => handleCreateFolder(section.id)}
-                            className="w-full flex items-center gap-2 px-3 py-1.5 rounded text-sm transition-colors text-white/60 hover:text-white hover:bg-[hsl(var(--sidebar-hover))]"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                            <span className="text-xs">Add folder</span>
-                          </button>
-                        </div>
+                        <SectionItem key={section.id} section={section} />
                       ))}
 
                       {/* Add Section button */}
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="w-full justify-start gap-2 px-3 py-1.5 h-auto text-white/60 hover:text-white hover:bg-[hsl(var(--sidebar-hover))]"
+                        className="w-full justify-start gap-2 px-3 py-2 h-auto text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/30 border border-sidebar-border/50"
                         onClick={handleCreateSection}
                       >
-                        <Plus className="h-3.5 w-3.5" />
-                        <span className="text-sm">Create new section</span>
+                        <Plus className="h-4 w-4" />
+                        <span className="text-sm font-medium">Create Section</span>
                       </Button>
                     </div>
                   )}
@@ -258,68 +357,98 @@ const Sidebar = ({ activeView, onViewChange, activeFolder, onFolderChange }: Sid
           </div>
 
           {/* Saved Views */}
-          <div className="px-2 mb-6">
-            <h3 className="px-3 text-xs font-semibold text-white/60 uppercase mb-2">Saved Views</h3>
-            {savedViews.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => onViewChange(item.id)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 rounded text-sm transition-colors",
-                  activeView === item.id
-                    ? "bg-white/20 text-white"
-                    : "text-white/80 hover:bg-[hsl(var(--sidebar-hover))] hover:text-white",
-                )}
-              >
-                {React.createElement(item.icon, { className: "h-4 w-4" })}
-                {item.label}
-              </button>
-            ))}
+          <div className="space-y-1">
+            <h3 className="px-3 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider mb-2">
+              Saved Views
+            </h3>
+            {savedViews.map((item) => {
+              const Icon = item.icon
+              const isActive = activeView === item.id
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onViewChange(item.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                    "hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                    isActive
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                      : "text-sidebar-foreground/70"
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span className="flex-1 text-left">{item.label}</span>
+                  {item.count && (
+                    <span className="text-xs bg-sidebar-accent/30 text-sidebar-foreground/60 px-1.5 py-0.5 rounded">
+                      {item.count}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
           </div>
 
           {/* Manage */}
-          <div className="px-2 mb-6">
-            <h3 className="px-3 text-xs font-semibold text-white/60 uppercase mb-2">Manage</h3>
-            {manageItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => onViewChange(item.id)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 rounded text-sm transition-colors",
-                  activeView === item.id
-                    ? "bg-white/20 text-white"
-                    : "text-white/80 hover:bg-[hsl(var(--sidebar-hover))] hover:text-white",
-                )}
-              >
-                {React.createElement(item.icon, { className: "h-4 w-4" })}
-                {item.label}
-              </button>
-            ))}
+          <div className="space-y-1">
+            <h3 className="px-3 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider mb-2">
+              Manage
+            </h3>
+            {manageItems.map((item) => {
+              const Icon = item.icon
+              const isActive = activeView === item.id
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onViewChange(item.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                    "hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                    isActive
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                      : "text-sidebar-foreground/70"
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span className="flex-1 text-left">{item.label}</span>
+                </button>
+              )
+            })}
           </div>
 
           {/* Administration */}
-          <div className="px-2">
-            <h3 className="px-3 text-xs font-semibold text-white/60 uppercase mb-2">Administration</h3>
-            {adminItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => onViewChange(item.id)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 rounded text-sm transition-colors",
-                  activeView === item.id
-                    ? "bg-white/20 text-white"
-                    : "text-white/80 hover:bg-[hsl(var(--sidebar-hover))] hover:text-white",
-                )}
-              >
-                {React.createElement(item.icon, { className: "h-4 w-4" })}
-                {item.label}
-              </button>
-            ))}
+          <div className="space-y-1">
+            <h3 className="px-3 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider mb-2">
+              Administration
+            </h3>
+            {adminItems.map((item) => {
+              const Icon = item.icon
+              const isActive = activeView === item.id
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onViewChange(item.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                    "hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                    isActive
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                      : "text-sidebar-foreground/70"
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span className="flex-1 text-left">{item.label}</span>
+                </button>
+              )
+            })}
           </div>
         </nav>
 
-        <div className="p-4 border-t border-white/10">
-          <p className="text-xs text-white/60">DMS v2.0.0</p>
+        {/* Footer */}
+        <div className="p-4 border-t border-sidebar-border">
+          <div className="flex items-center gap-2 text-xs text-sidebar-foreground/50">
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>DMS v2.0.0</span>
+          </div>
         </div>
       </aside>
 

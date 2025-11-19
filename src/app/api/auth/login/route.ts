@@ -35,6 +35,7 @@ const mockUsers = [
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('Login request received:', { email: body.email })
     
     // Validate request body
     const validatedData = loginSchema.parse(body)
@@ -42,8 +43,10 @@ export async function POST(request: NextRequest) {
 
     // Find user (in production, this would be a database query)
     const user = mockUsers.find(u => u.email === email)
+    console.log('User found:', !!user, 'Password match:', user?.password === password)
     
     if (!user || user.password !== password) {
+      console.log('Login failed: Invalid credentials')
       return NextResponse.json(
         {
           success: false,
@@ -62,6 +65,8 @@ export async function POST(request: NextRequest) {
     
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user
+
+    console.log('Login successful for user:', userWithoutPassword.email)
 
     const response = NextResponse.json({
       success: true,

@@ -1,0 +1,19 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+## Code Quality
+- Follow KISS, DRY and SOLID principles
+- No secrets or sensitive data in code
+- Lint and format code before pushing
+- Add helpful logging statements, don't expose any sensitive data or PII into log statements
+- Avoid using any for types
+- Update / Create little documentation at the file top/ method level
+- Do minimal changes as possible
+- spacing,padding and margin should be minimal .
+
+## UI Components
+- **Always first check** if component exists in `@ui/` folder (`/src/components/ui/`)
+- **If component doesn't exist**, then use shadcn or radix ui components and import them
+- Priority: @ui/ components > shadcn/radix ui > custom components

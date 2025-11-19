@@ -2,7 +2,6 @@
 
 // Dashboard Overview Page
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   FileText,
@@ -17,14 +16,8 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useAppDispatch, useAppSelector } from '@/src/lib/store/store'
+import { useAppSelector } from '@/src/lib/store/store'
 import { selectUser } from '@/src/lib/store/slices/auth-slice'
-import { 
-  fetchDocumentsAsync, 
-  selectDocuments, 
-  selectIsLoading 
-} from '@/src/lib/store/slices/documents-slice'
 
 const stats = [
   {
@@ -99,28 +92,28 @@ const recentDocuments = [
 const quickActions = [
   {
     title: 'Upload Document',
-    description: 'Naye documents upload kariye',
+    description: 'Upload new documents',
     icon: Upload,
     href: '/dashboard/documents/upload',
     color: 'bg-blue-500',
   },
   {
     title: 'Create Folder',
-    description: 'Naya folder banaye',
+    description: 'Create a new folder',
     icon: Folder,
     href: '/dashboard/folders/create',
     color: 'bg-green-500',
   },
   {
     title: 'View All Documents',
-    description: 'Sabre documents dekhen',
+    description: 'View all your documents',
     icon: FileText,
     href: '/dashboard/documents',
     color: 'bg-purple-500',
   },
   {
     title: 'Team Collaboration',
-    description: 'Team ke sath collaborate kariye',
+    description: 'Collaborate with your team',
     icon: Users,
     href: '/dashboard/teams',
     color: 'bg-orange-500',
@@ -151,14 +144,7 @@ function getFileIcon(type: string) {
 }
 
 export default function DashboardPage() {
-  const dispatch = useAppDispatch()
   const user = useAppSelector(selectUser)
-  const documents = useAppSelector(selectDocuments)
-  const isLoading = useAppSelector(selectIsLoading)
-
-  useEffect(() => {
-    dispatch(fetchDocumentsAsync({ limit: 10 }))
-  }, [dispatch])
 
   const getGreeting = () => {
     const hour = new Date().getHours()
@@ -176,7 +162,7 @@ export default function DashboardPage() {
             {getGreeting()}, {user?.name?.split(' ')[0]}! 👋
           </h1>
           <p className="mt-2 text-sm text-gray-600">
-            Aaj aapke documents ka overview dekhen aur manage kariye
+            View and manage your documents overview
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
@@ -262,7 +248,7 @@ export default function DashboardPage() {
             <div>
               <CardTitle>Recent Documents</CardTitle>
               <CardDescription>
-                Aapke recently modified documents
+                Your recently modified documents
               </CardDescription>
             </div>
             <Button variant="outline" size="sm" asChild>
@@ -270,23 +256,8 @@ export default function DashboardPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <div className="space-y-3">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gray-200 rounded"></div>
-                      <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {recentDocuments.map((doc) => (
+            <div className="space-y-4">
+              {recentDocuments.map((doc) => (
                   <div
                     key={doc.id}
                     className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50"
@@ -318,8 +289,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ))}
-              </div>
-            )}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -329,7 +299,7 @@ export default function DashboardPage() {
         <CardHeader>
           <CardTitle>Recent Activity</CardTitle>
           <CardDescription>
-            Aapke account mein recent activities
+            Recent activities in your account
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -1,6 +1,6 @@
 'use client'
 
-// Login Page with proper form validation
+// Simple Login Page - KISS Principle
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -11,20 +11,13 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Alert } from '@/components/ui/alert'
 import { Loader2, Eye, EyeOff } from 'lucide-react'
-import { useAppDispatch, useAppSelector } from '@/src/lib/store/store'
-import { loginAsync, selectAuth, clearError } from '@/src/lib/store/slices/auth-slice'
+import { useAppDispatch } from '@/src/lib/store/store'
+import { login } from '@/src/lib/store/slices/auth-slice'
 
 const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email required hai')
-    .email('Valid email address enter kariye'),
-  password: z
-    .string()
-    .min(1, 'Password required hai')
-    .min(6, 'Password kam se kam 6 characters ka hona chahiye'),
+  email: z.string().min(1, 'Email is required'),
+  password: z.string().min(1, 'Password is required'),
 })
 
 type LoginFormData = z.infer<typeof loginSchema>
@@ -33,7 +26,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { isLoading, error } = useAppSelector(selectAuth)
 
   const {
     register,
@@ -44,17 +36,9 @@ export default function LoginPage() {
   })
 
   const onSubmit = async (data: LoginFormData) => {
-    try {
-      dispatch(clearError())
-      const result = await dispatch(loginAsync(data))
-      
-      if (loginAsync.fulfilled.match(result)) {
-        router.push('/dashboard')
-      }
-      // Error handling is done by Redux slice
-    } catch (error) {
-      console.error('Login error:', error)
-    }
+    // Simple login - no checks, just set user and redirect
+    dispatch(login({ email: data.email, password: data.password }))
+    router.push('/dashboard')
   }
 
   const togglePasswordVisibility = () => {
@@ -68,17 +52,12 @@ export default function LoginPage() {
           Welcome back!
         </h2>
         <p className="mt-2 text-sm text-gray-600">
-          Apne account mein login kariye
+          Sign in to your account
         </p>
       </div>
 
       <div className="mt-8">
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          {error && (
-            <Alert variant="destructive">
-              {error}
-            </Alert>
-          )}
 
           <div className="space-y-4">
             <div>
@@ -141,7 +120,7 @@ export default function LoginPage() {
                 href="/forgot-password"
                 className="font-medium text-blue-600 hover:text-blue-500"
               >
-                Password bhool gaye?
+                Forgot password?
               </Link>
             </div>
           </div>
@@ -150,9 +129,9 @@ export default function LoginPage() {
             <Button
               type="submit"
               className="w-full"
-              disabled={isSubmitting || isLoading}
+              disabled={isSubmitting}
             >
-              {(isSubmitting || isLoading) ? (
+              {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Signing in...
@@ -169,7 +148,7 @@ export default function LoginPage() {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Ya</span>
+                <span className="px-2 bg-white text-gray-500">Or</span>
               </div>
             </div>
 
@@ -210,12 +189,12 @@ export default function LoginPage() {
           </div>
 
           <p className="mt-6 text-center text-sm text-gray-500">
-            Account nahi hai?{' '}
+            Don't have an account?{' '}
             <Link
               href="/register"
               className="font-semibold leading-6 text-blue-600 hover:text-blue-500"
             >
-              Register kariye
+              Sign up
             </Link>
           </p>
         </form>

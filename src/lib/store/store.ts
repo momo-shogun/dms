@@ -14,12 +14,38 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        // Ignore these action types for Date objects
-        ignoredActions: ['auth/setUser', 'documents/setDocuments'],
         // Ignore these field paths in all actions
-        ignoredActionsPaths: ['meta.arg', 'payload.timestamp'],
-        // Ignore these paths in the state
-        ignoredPaths: ['auth.user.createdAt', 'auth.user.updatedAt'],
+        ignoredActionsPaths: [
+          'meta.arg',
+          'payload.timestamp',
+          'payload.user',
+          'payload.createdAt',
+          'payload.updatedAt',
+          'payload.documents',
+          'payload.folders',
+          'payload.sections',
+        ],
+        // Ignore Date objects in state paths
+        ignoredPaths: [
+          'auth.user',
+          'documents.documents',
+          'documents.folders',
+          'documents.sections',
+          'documents.selectedDocument',
+        ],
+        // Custom check to allow Date objects in both actions and state
+        isSerializable: (value: any) => {
+          // Allow Date objects
+          if (value instanceof Date) {
+            return true
+          }
+          // Allow objects that might contain Date objects (will be checked recursively)
+          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            return undefined // Let default check handle nested objects
+          }
+          // Use default check for other values
+          return undefined
+        },
       },
     }),
   devTools: process.env.NODE_ENV !== 'production',

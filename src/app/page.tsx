@@ -4,8 +4,8 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAppDispatch, useAppSelector } from '@/src/lib/store/store'
-import { initializeAuthAsync, selectAuth } from '@/src/lib/store/slices/auth-slice'
+import { useAppSelector } from '@/src/lib/store/store'
+import { selectAuth } from '@/src/lib/store/slices/auth-slice'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
@@ -24,32 +24,32 @@ const features = [
   {
     icon: FileText,
     title: 'Document Management',
-    description: 'Upload, organize aur manage kariye apne documents easily',
+    description: 'Upload, organize and manage your documents easily',
   },
   {
     icon: Shield,
     title: 'Secure Storage',
-    description: 'Bank-level security ke saath apne files ko safe rakhiye',
+    description: 'Keep your files safe with bank-level security',
   },
   {
     icon: Users,
     title: 'Team Collaboration',
-    description: 'Team ke sath share aur collaborate kariye seamlessly',
+    description: 'Share and collaborate with your team seamlessly',
   },
   {
     icon: Search,
     title: 'Advanced Search',
-    description: 'Powerful search aur filtering options ke saath quickly find kariye',
+    description: 'Quickly find what you need with powerful search and filtering options',
   },
   {
     icon: Cloud,
     title: 'Cloud Access',
-    description: 'Anywhere, anytime access kariye apne documents',
+    description: 'Access your documents anywhere, anytime',
   },
   {
     icon: Zap,
     title: 'Fast Performance',
-    description: 'Lightning fast upload aur download speeds',
+    description: 'Lightning fast upload and download speeds',
   },
 ]
 
@@ -64,29 +64,14 @@ const benefits = [
 
 export default function HomePage() {
   const router = useRouter()
-  const dispatch = useAppDispatch()
-  const { isAuthenticated, isLoading } = useAppSelector(selectAuth)
+  const { isAuthenticated } = useAppSelector(selectAuth)
 
   useEffect(() => {
-    dispatch(initializeAuthAsync())
-  }, [dispatch])
-
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    // Redirect to dashboard if authenticated
+    if (isAuthenticated) {
       router.push('/dashboard')
     }
-  }, [isAuthenticated, isLoading, router])
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    )
-  }
+  }, [isAuthenticated, router])
 
   if (isAuthenticated) {
     return null // Will redirect to dashboard
@@ -124,8 +109,8 @@ export default function HomePage() {
             <span className="text-blue-600 block">Like a Pro</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Aapke documents ko organize, secure, aur access karne ka sabse modern aur aasan tarika. 
-            Professional-grade document management system jo teams ke liye perfect hai.
+            The most modern and easy way to organize, secure, and access your documents. 
+            A professional-grade document management system that's perfect for teams.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" asChild>
@@ -149,7 +134,7 @@ export default function HomePage() {
               Why Choose Our DMS?
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Enterprise-grade features jo aapke business ko next level pe le jaaye
+              Enterprise-grade features that take your business to the next level
             </p>
           </div>
 
@@ -182,7 +167,7 @@ export default function HomePage() {
                 Everything You Need in One Place
               </h2>
               <p className="text-lg text-gray-600 mb-8">
-                Complete document management solution jo aapke business ke har requirement ko fulfill karta hai.
+                Complete document management solution that fulfills every requirement of your business.
               </p>
               <div className="space-y-4">
                 {benefits.map((benefit, index) => (
@@ -227,7 +212,7 @@ export default function HomePage() {
               </div>
               <p className="text-gray-400 mb-4">
                 Professional document management solution for modern businesses. 
-                Secure, scalable, aur user-friendly.
+                Secure, scalable, and user-friendly.
               </p>
             </div>
             <div>

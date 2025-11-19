@@ -2,7 +2,7 @@
 
 // Documents Page with filtering and multiple view modes
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   Search,
@@ -18,6 +18,7 @@ import {
   Download,
   Share,
   MoreHorizontal,
+  FileText,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,7 +30,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/src/components/ui/select'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -145,7 +146,7 @@ function formatDate(dateString: string) {
   return date.toLocaleDateString()
 }
 
-export default function DocumentsPage() {
+function DocumentsContent() {
   const searchParams = useSearchParams()
   const [searchTerm, setSearchTerm] = useState(searchParams?.get('q') || '')
   const [sortBy, setSortBy] = useState('lastModified')
@@ -327,7 +328,7 @@ export default function DocumentsPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Documents</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Manage aur organize kariye apne documents
+            Manage and organize your documents
           </p>
         </div>
         <div className="mt-4 sm:mt-0 flex space-x-3">
@@ -441,5 +442,20 @@ export default function DocumentsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function DocumentsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <DocumentsContent />
+    </Suspense>
   )
 }

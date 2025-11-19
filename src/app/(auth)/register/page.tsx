@@ -1,6 +1,6 @@
 'use client'
 
-// Register Page with form validation
+// Simple Register Page - KISS Principle
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -11,35 +11,19 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Alert } from '@/components/ui/alert'
 import { Loader2, Eye, EyeOff } from 'lucide-react'
-import { useAppDispatch, useAppSelector } from '@/src/lib/store/store'
-import { registerAsync, selectAuth, clearError } from '@/src/lib/store/slices/auth-slice'
+import { useAppDispatch } from '@/src/lib/store/store'
+import { register } from '@/src/lib/store/slices/auth-slice'
 
-const registerSchema = z
-  .object({
-    name: z
-      .string()
-      .min(1, 'Name required hai')
-      .min(2, 'Name kam se kam 2 characters ka hona chahiye'),
-    email: z
-      .string()
-      .min(1, 'Email required hai')
-      .email('Valid email address enter kariye'),
-    password: z
-      .string()
-      .min(1, 'Password required hai')
-      .min(8, 'Password kam se kam 8 characters ka hona chahiye')
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        'Password mein ek lowercase, ek uppercase, aur ek number hona chahiye'
-      ),
-    confirmPassword: z.string().min(1, 'Password confirmation required hai'),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Passwords match nahi kar rahe',
-    path: ['confirmPassword'],
-  })
+const registerSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().min(1, 'Email is required'),
+  password: z.string().min(1, 'Password is required'),
+  confirmPassword: z.string().min(1, 'Password confirmation is required'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+})
 
 type RegisterFormData = z.infer<typeof registerSchema>
 
@@ -48,10 +32,9 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { isLoading, error } = useAppSelector(selectAuth)
 
   const {
-    register,
+    register: registerField,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
@@ -59,21 +42,13 @@ export default function RegisterPage() {
   })
 
   const onSubmit = async (data: RegisterFormData) => {
-    try {
-      dispatch(clearError())
-      const result = await dispatch(registerAsync({
-        name: data.name,
-        email: data.email,
-        password: data.password
-      }))
-      
-      if (registerAsync.fulfilled.match(result)) {
-        router.push('/dashboard')
-      }
-      // Error handling is done by Redux slice
-    } catch (error) {
-      console.error('Registration error:', error)
-    }
+    // Simple register - no checks, just set user and redirect
+    dispatch(register({ 
+      name: data.name, 
+      email: data.email, 
+      password: data.password 
+    }))
+    router.push('/dashboard')
   }
 
   return (
@@ -83,26 +58,20 @@ export default function RegisterPage() {
           Create account
         </h2>
         <p className="mt-2 text-sm text-gray-600">
-          Apna account banaye aur start kariye
+          Create your account and get started
         </p>
       </div>
 
       <div className="mt-8">
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          {error && (
-            <Alert variant="destructive">
-              {error}
-            </Alert>
-          )}
-
           <div className="space-y-4">
             <div>
               <Label htmlFor="name">Full Name</Label>
               <Input
-                {...register('name')}
+                {...registerField('name')}
                 type="text"
                 autoComplete="name"
-                placeholder="Aapka full name"
+                placeholder="Your full name"
                 className="mt-1"
               />
               {errors.name && (
@@ -113,7 +82,7 @@ export default function RegisterPage() {
             <div>
               <Label htmlFor="email">Email Address</Label>
               <Input
-                {...register('email')}
+                {...registerField('email')}
                 type="email"
                 autoComplete="email"
                 placeholder="your@email.com"
@@ -128,7 +97,7 @@ export default function RegisterPage() {
               <Label htmlFor="password">Password</Label>
               <div className="mt-1 relative">
                 <Input
-                  {...register('password')}
+                  {...registerField('password')}
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   placeholder="••••••••"
@@ -155,7 +124,7 @@ export default function RegisterPage() {
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <div className="mt-1 relative">
                 <Input
-                  {...register('confirmPassword')}
+                  {...registerField('confirmPassword')}
                   type={showConfirmPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   placeholder="••••••••"
@@ -188,15 +157,14 @@ export default function RegisterPage() {
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <Label htmlFor="terms" className="ml-2 text-sm text-gray-900">
-              Main agree karta hun{' '}
+              I agree to the{' '}
               <Link href="/terms" className="text-blue-600 hover:underline">
                 Terms of Service
               </Link>{' '}
-              aur{' '}
+              and{' '}
               <Link href="/privacy" className="text-blue-600 hover:underline">
                 Privacy Policy
-              </Link>{' '}
-              se
+              </Link>
             </Label>
           </div>
 
@@ -204,9 +172,9 @@ export default function RegisterPage() {
             <Button
               type="submit"
               className="w-full"
-              disabled={isSubmitting || isLoading}
+              disabled={isSubmitting}
             >
-              {(isSubmitting || isLoading) ? (
+              {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Creating account...
@@ -223,7 +191,7 @@ export default function RegisterPage() {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Ya</span>
+                <span className="px-2 bg-white text-gray-500">Or</span>
               </div>
             </div>
 
@@ -264,12 +232,12 @@ export default function RegisterPage() {
           </div>
 
           <p className="mt-6 text-center text-sm text-gray-500">
-            Pehle se account hai?{' '}
+            Already have an account?{' '}
             <Link
               href="/login"
               className="font-semibold leading-6 text-blue-600 hover:text-blue-500"
             >
-              Login kariye
+              Sign in
             </Link>
           </p>
         </form>

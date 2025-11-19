@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Authentication | DMS',
-  description: 'Login ya Register kariye Document Management System mein',
+  description: 'Login or Register to the Document Management System',
 }
 
 export default function AuthLayout({
@@ -39,7 +39,7 @@ export default function AuthLayout({
           </h1>
           
           <p className="text-lg text-white/80">
-            Aapke documents ko organize karne ka sabse aasan aur secure tarika
+            The easiest and most secure way to organize your documents
           </p>
           
           <div className="space-y-4 text-sm text-white/70">
@@ -51,7 +51,7 @@ export default function AuthLayout({
                   clipRule="evenodd"
                 />
               </svg>
-              <span>Secure file storage aur sharing</span>
+              <span>Secure file storage and sharing</span>
             </div>
             
             <div className="flex items-center gap-3">
@@ -62,7 +62,7 @@ export default function AuthLayout({
                   clipRule="evenodd"
                 />
               </svg>
-              <span>Advanced search aur filters</span>
+              <span>Advanced search and filters</span>
             </div>
             
             <div className="flex items-center gap-3">
@@ -93,15 +93,15 @@ export default function AuthLayout({
           
           <div className="mt-8 text-center text-sm text-gray-500">
             <p>
-              By continuing, aap agree karte hain humare{' '}
+              By continuing, you agree to our{' '}
               <Link href="/terms" className="text-blue-600 hover:underline">
                 Terms of Service
               </Link>{' '}
-              aur{' '}
+              and{' '}
               <Link href="/privacy" className="text-blue-600 hover:underline">
                 Privacy Policy
-              </Link>{' '}
-              se.
+              </Link>
+              .
             </p>
           </div>
         </div>

@@ -70,7 +70,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 Oops! Something went wrong
               </CardTitle>
               <CardDescription className="text-gray-600">
-                Koi technical problem aa gai hai. Humse maafi chahte hain.
+                A technical problem has occurred. We apologize for the inconvenience.
               </CardDescription>
             </CardHeader>
             
@@ -109,14 +109,14 @@ export class ErrorBoundary extends Component<Props, State> {
 
               <div className="text-center text-sm text-gray-500">
                 <p>
-                  Agar problem continue hoti rahegi, toh please{' '}
+                  If the problem continues, please{' '}
                   <a 
                     href="mailto:support@dms.com" 
                     className="text-blue-600 hover:underline"
                   >
                     contact support
                   </a>
-                  {' '}kar ke help le sakte hain.
+                  {' '}for assistance.
                 </p>
               </div>
             </CardContent>
@@ -159,7 +159,7 @@ export function ErrorFallback({
         <p className="text-gray-600 mb-6">
           {process.env.NODE_ENV === 'development' 
             ? error.message 
-            : 'Koi technical issue aa gai hai. Please try again.'}
+            : 'A technical issue has occurred. Please try again.'}
         </p>
         <Button onClick={resetError}>
           <RefreshCw className="w-4 h-4 mr-2" />

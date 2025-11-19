@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     template: '%s | Document Management System',
     default: 'Document Management System - Secure Document Storage & Management'
   },
-  description: 'Professional document management system for secure storage, organization, and collaboration. Aapke documents ko manage karne ka sabse aasan tarika.',
+  description: 'Professional document management system for secure storage, organization, and collaboration. The easiest way to manage your documents.',
   keywords: ['document management', 'file storage', 'document organization', 'team collaboration'],
   authors: [{ name: 'DMS Team' }],
   creator: 'Document Management System',
