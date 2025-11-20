@@ -341,3 +341,5 @@ const Sidebar = ({ activeView, onViewChange, activeFolder, onFolderChange }: Sid
 }
 
 export default Sidebar
+
+

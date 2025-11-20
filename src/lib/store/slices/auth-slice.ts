@@ -28,7 +28,7 @@ const authSlice = createSlice({
         id: `${Date.now()}`,
         email: action.payload.email,
         name: action.payload.email.split('@')[0],
-        role: 'user' as const,
+    role: 'user' as const,
         createdAt: now,
         updatedAt: now,
       }
@@ -38,31 +38,31 @@ const authSlice = createSlice({
       state.error = null
       
       // Save to localStorage
-      if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined') {
         localStorage.setItem('user_info', JSON.stringify(user))
-      }
+    }
     },
     
     register: (state, action: PayloadAction<{ name: string; email: string; password: string }>) => {
       // Simple register - just create user, no checks
       const now = new Date().toISOString()
       const user = {
-        id: `${Date.now()}`,
+      id: `${Date.now()}`,
         email: action.payload.email,
         name: action.payload.name,
-        role: 'user' as const,
+      role: 'user' as const,
         createdAt: now,
         updatedAt: now,
-      }
-      
+    }
+    
       state.user = user as User
       state.isAuthenticated = true
       state.error = null
       
       // Save to localStorage
-      if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined') {
         localStorage.setItem('user_info', JSON.stringify(user))
-      }
+    }
     },
     
     logout: (state) => {
@@ -71,14 +71,14 @@ const authSlice = createSlice({
       state.error = null
       
       // Clear localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('user_info')
-      }
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('user_info')
+    }
     },
     
     initializeAuth: (state) => {
       // Load user from localStorage on app start
-      if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined') {
         const storedUser = localStorage.getItem('user_info')
         if (storedUser) {
           try {
@@ -86,10 +86,10 @@ const authSlice = createSlice({
             // Keep dates as strings (serializable) - convert to Date only when needed
             state.user = user as User
             state.isAuthenticated = true
-          } catch (error) {
-            localStorage.removeItem('user_info')
-          }
-        }
+      } catch (error) {
+        localStorage.removeItem('user_info')
+      }
+    }
       }
     },
     

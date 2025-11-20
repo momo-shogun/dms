@@ -19,11 +19,11 @@ const registerSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().min(1, 'Email is required'),
   password: z.string().min(1, 'Password is required'),
-  confirmPassword: z.string().min(1, 'Password confirmation is required'),
+    confirmPassword: z.string().min(1, 'Password confirmation is required'),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword'],
-})
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  })
 
 type RegisterFormData = z.infer<typeof registerSchema>
 
@@ -44,11 +44,11 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterFormData) => {
     // Simple register - no checks, just set user and redirect
     dispatch(register({ 
-      name: data.name, 
-      email: data.email, 
-      password: data.password 
-    }))
-    router.push('/dashboard')
+        name: data.name,
+        email: data.email,
+        password: data.password
+      }))
+        router.push('/dashboard')
   }
 
   return (

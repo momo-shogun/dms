@@ -45,8 +45,14 @@ export default function DashboardLayout({
     // Documents/Main Section doesn't navigate - just expands/collapses
   }
 
-  const handleFolderChange = (folderId?: string) => {
-    setActiveFolder(folderId)
+  const handleFolderChange = (sectionId?: string) => {
+    setActiveFolder(sectionId)
+    // Navigate to documents page with section ID
+    if (sectionId) {
+      router.push(`/documents?section=${sectionId}`)
+    } else {
+      router.push('/dashboard/documents')
+    }
   }
 
   const handleLogout = () => {
@@ -74,8 +80,8 @@ export default function DashboardLayout({
           />
 
           {/* Page content */}
-          <main className="flex-1 py-6">
-            <div className="px-4 sm:px-6 lg:px-8">
+          <main className="flex-1">
+            <div className="">
               {children}
             </div>
           </main>

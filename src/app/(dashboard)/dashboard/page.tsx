@@ -256,8 +256,8 @@ export default function DashboardPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentDocuments.map((doc) => (
+              <div className="space-y-4">
+                {recentDocuments.map((doc) => (
                   <div
                     key={doc.id}
                     className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50"
@@ -289,7 +289,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ))}
-            </div>
+              </div>
           </CardContent>
         </Card>
       </div>

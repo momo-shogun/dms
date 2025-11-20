@@ -12,6 +12,7 @@ alwaysApply: true
 - Update / Create little documentation at the file top/ method level
 - Do minimal changes as possible
 - spacing,padding and margin should be minimal .
+- always follow coloring theme that is present in the project in global.css 
 
 ## UI Components
 - **Always first check** if component exists in `@ui/` folder (`/src/components/ui/`)
