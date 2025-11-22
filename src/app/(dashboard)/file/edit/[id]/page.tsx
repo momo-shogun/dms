@@ -147,11 +147,11 @@ export default function FileEditPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-background">
+      <div className="w-full">
         {/* Breadcrumb */}
         {breadcrumbItems.length > 0 && (
-          <div className="mb-6">
+          <div className="mb-4 px-6 pt-6">
             <BreadcrumbNavigation
               items={breadcrumbItems}
               onNavigate={(path) => {
@@ -171,50 +171,33 @@ export default function FileEditPage() {
         )}
 
         {/* Header */}
-        <div className="bg-card border border-border rounded-lg p-6 mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                <FileTypeIcon fileType={fileData.file.fileType} className="h-6 w-6 text-primary" size={24} />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-card-foreground">Edit File</h1>
-                <p className="text-sm text-muted-foreground">Update file details and metadata</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
-                <X className="h-4 w-4 mr-2" />
-                Cancel
-              </Button>
-              <Button onClick={handleSave} disabled={isSaving || !name.trim()}>
-                <Save className="h-4 w-4 mr-2" />
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </div>
+        <div className="px-6 mb-6">
+          <div className="flex items-center gap-3 mb-6">
+            <FileTypeIcon fileType={fileData.file.fileType} className="h-5 w-5 text-muted-foreground" size={20} />
+            <h1 className="text-2xl font-semibold text-foreground">{fileData.file.name}</h1>
           </div>
         </div>
 
         {/* Form */}
-        <div className="bg-card border border-border rounded-lg p-6 space-y-6">
+        <div className="px-6 pb-6 space-y-6">
           {/* Name */}
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-medium text-foreground">
-              File Name *
+            <Label htmlFor="name" className="text-sm font-medium text-primary">
+              Name
             </Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter file name"
-              className="w-full"
+              className="w-full max-w-md"
               autoFocus
             />
           </div>
 
           {/* Tags */}
           <div className="space-y-2">
-            <Label htmlFor="tags" className="text-sm font-medium text-foreground">
+            <Label htmlFor="tags" className="text-sm font-medium text-primary">
               Tags
             </Label>
             <div className="flex flex-wrap gap-2 mb-2">
@@ -234,34 +217,24 @@ export default function FileEditPage() {
                 </Badge>
               ))}
             </div>
-            <div className="flex gap-2">
-              <Input
-                id="tags"
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    handleAddTag()
-                  }
-                }}
-                placeholder="Add a tag and press Enter"
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleAddTag}
-                disabled={!newTag.trim()}
-              >
-                <TagIcon className="h-4 w-4" />
-              </Button>
-            </div>
+            <Input
+              id="tags"
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  handleAddTag()
+                }
+              }}
+              placeholder="Type or click here"
+              className="w-full max-w-md"
+            />
           </div>
 
           {/* Author */}
           <div className="space-y-2">
-            <Label htmlFor="author" className="text-sm font-medium text-foreground">
+            <Label htmlFor="author" className="text-sm font-medium text-primary">
               Author
             </Label>
             <Input
@@ -269,74 +242,35 @@ export default function FileEditPage() {
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
               placeholder="Enter author name"
-              className="w-full"
+              className="w-full max-w-md"
             />
           </div>
 
-          {/* Description */}
+          {/* Description/Notes */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm font-medium text-foreground">
-              Description
+            <Label htmlFor="description" className="text-sm font-medium text-primary">
+              Notes
             </Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add a description for this file"
-              className="w-full min-h-[100px]"
-              rows={4}
+              placeholder="Add notes"
+              className="w-full max-w-2xl min-h-[120px]"
+              rows={6}
             />
           </div>
 
-          {/* File Info */}
-          <div className="pt-4 border-t border-border">
-            <h3 className="text-sm font-semibold text-foreground mb-3">File Information</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-muted-foreground flex items-center gap-2">
-                  <File className="h-4 w-4" />
-                  Size
-                </p>
-                <p className="text-foreground font-medium">{fileData.file.size}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Last Modified
-                </p>
-                <p className="text-foreground font-medium">
-                  {new Date(fileData.file.lastModified).toLocaleDateString('en-IN', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </p>
-              </div>
-              <div>
-                <p className="text-muted-foreground flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Created At
-                </p>
-                <p className="text-foreground font-medium">
-                  {new Date(fileData.file.createdAt).toLocaleDateString('en-IN', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </p>
-              </div>
-              <div>
-                <p className="text-muted-foreground flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  Created By
-                </p>
-                <p className="text-foreground font-medium">{fileData.file.author}</p>
-              </div>
-            </div>
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 pt-4">
+            <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={isSaving || !name.trim()}>
+              <Save className="h-4 w-4 mr-2" />
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </Button>
           </div>
         </div>
       </div>

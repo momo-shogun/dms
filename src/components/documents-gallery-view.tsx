@@ -2,7 +2,7 @@
 
 // Documents Gallery View Component - Grid View with Document Previews
 
-import { ZoomIn, List, Grid3X3 } from 'lucide-react'
+import { ZoomIn, List, Grid3X3, Folder as FolderIcon, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -14,9 +14,19 @@ import type { DocumentItem } from './documents-list-view'
 import { FileTypeIcon } from '@/src/components/file-type-icons'
 import { cn } from '@/lib/utils'
 
+interface FolderItem {
+  id: string
+  name: string
+  folderCount?: number
+  fileCount?: number
+  itemCount?: number
+}
+
 interface DocumentsGalleryViewProps {
   documents: DocumentItem[]
+  folders?: FolderItem[]
   onDocumentClick?: (doc: DocumentItem) => void
+  onFolderClick?: (folder: FolderItem) => void
   onZoom?: (doc: DocumentItem) => void
   viewMode?: 'list' | 'grid'
   onViewModeChange?: (mode: 'list' | 'grid') => void
@@ -166,7 +176,9 @@ function DocumentPreview({ document }: { document: DocumentItem }) {
 
 export default function DocumentsGalleryView({
   documents,
+  folders = [],
   onDocumentClick,
+  onFolderClick,
   onZoom,
   viewMode = 'grid',
   onViewModeChange,
@@ -217,11 +229,65 @@ export default function DocumentsGalleryView({
         </TooltipProvider>
       </div>
 
-      {/* Gallery Grid */}
+      {/* Gallery Grid - Folders first, then files */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {/* Folders */}
+        {folders.map((folder) => (
+          <div 
+            key={`folder-${folder.id}`}
+            onClick={() => onFolderClick?.(folder)}
+            className={cn(
+              "flex flex-col cursor-pointer group",
+              "bg-card border border-border rounded-lg p-6",
+              "shadow-sm hover:shadow-md",
+              "transition-all duration-200",
+              "hover:scale-[1.02] hover:-translate-y-1",
+              "hover:border-primary/20"
+            )}
+          >
+            {/* Folder Preview Area */}
+            <div className="relative mb-4 h-32 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg flex items-center justify-center overflow-hidden">
+              <FolderIcon className="h-12 w-12 text-primary/60 group-hover:text-primary transition-colors" />
+              {/* File count badge */}
+              <div className="absolute bottom-2 right-2 flex gap-1">
+                {folder.fileCount && folder.fileCount > 0 && (
+                  <div className="bg-background/80 backdrop-blur-sm rounded px-2 py-1 text-xs font-medium text-foreground shadow-sm">
+                    {folder.fileCount} {folder.fileCount === 1 ? 'file' : 'files'}
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Folder Info */}
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors mb-1">
+                {folder.name}
+              </h3>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                {folder.folderCount && folder.folderCount > 0 && (
+                  <span className="flex items-center gap-1">
+                    <FolderIcon className="h-3 w-3" />
+                    {folder.folderCount}
+                  </span>
+                )}
+                {folder.fileCount && folder.fileCount > 0 && (
+                  <span className="flex items-center gap-1">
+                    <FileText className="h-3 w-3" />
+                    {folder.fileCount}
+                  </span>
+                )}
+                {!folder.folderCount && !folder.fileCount && (
+                  <span className="text-muted-foreground/70">Empty</span>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* Files */}
         {documents.map((doc) => (
           <div 
-            key={doc.id} 
+            key={`file-${doc.id}`} 
             className={cn(
               "flex flex-col cursor-pointer group",
               "transition-all duration-200",
@@ -242,10 +308,10 @@ export default function DocumentsGalleryView({
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-semibold text-foreground mb-1 line-clamp-2 group-hover:text-primary transition-colors">
                   {doc.name}
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              {formatDate(doc.lastModified)}
-            </p>
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {formatDate(doc.lastModified)}
+                </p>
               </div>
             </div>
           </div>

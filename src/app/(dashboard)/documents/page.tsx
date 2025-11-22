@@ -832,73 +832,28 @@ function DocumentsContent() {
               >
               {viewMode === 'grid' ? (
                 <>
-                  {/* Folders in Grid */}
-                  {filteredFolders.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
-                      {filteredFolders.map((folder) => (
-                        <div
-                          key={folder.id}
-                          onClick={() => handleFolderClick(folder)}
-                          className={cn(
-                            "flex flex-col cursor-pointer group",
-                            "bg-card border border-border rounded-lg p-6",
-                            "shadow-sm hover:shadow-md",
-                            "transition-all duration-200",
-                            "hover:scale-[1.02] hover:-translate-y-1",
-                            "hover:border-primary/20"
-                          )}
-                        >
-                          {/* Folder Preview Area */}
-                          <div className="relative mb-4 h-32 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg flex items-center justify-center overflow-hidden">
-                            <FolderIcon className="h-12 w-12 text-primary/60 group-hover:text-primary transition-colors" />
-                            {/* Preview thumbnails - show first few file icons */}
-                            <div className="absolute bottom-2 right-2 flex gap-1">
-                              {folder.fileCount && folder.fileCount > 0 && (
-                                <div className="bg-background/80 backdrop-blur-sm rounded px-2 py-1 text-xs font-medium text-foreground shadow-sm">
-                                  {folder.fileCount} {folder.fileCount === 1 ? 'file' : 'files'}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Folder Info */}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors mb-1">
-                              {folder.name}
-                            </h3>
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                              {folder.folderCount && folder.folderCount > 0 && (
-                                <span className="flex items-center gap-1">
-                                  <FolderIcon className="h-3 w-3" />
-                                  {folder.folderCount}
-                                </span>
-                              )}
-                              {folder.fileCount && folder.fileCount > 0 && (
-                                <span className="flex items-center gap-1">
-                                  <FileText className="h-3 w-3" />
-                                  {folder.fileCount}
-                                </span>
-                              )}
-                              {!folder.folderCount && !folder.fileCount && (
-                                <span className="text-muted-foreground/70">Empty</span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {/* Files in Grid */}
-                  {filteredDocuments.length > 0 && (
-                <DocumentsGalleryView 
-                  documents={filteredDocuments} 
-                  onDocumentClick={handleDocumentClick}
-                  onZoom={(doc) => {
-                    console.log('Zoom:', doc.name)
-                  }}
-                  viewMode={viewMode}
-                  onViewModeChange={setViewMode}
-                />
+                  {/* Gallery View - Folders and Files together */}
+                  {(filteredFolders.length > 0 || filteredDocuments.length > 0) && (
+                    <DocumentsGalleryView 
+                      documents={filteredDocuments}
+                      folders={filteredFolders.map(f => ({
+                        id: f.id,
+                        name: f.name,
+                        folderCount: f.folderCount,
+                        fileCount: f.fileCount,
+                        itemCount: f.itemCount,
+                      }))}
+                      onDocumentClick={handleDocumentClick}
+                      onFolderClick={(folder) => {
+                        const fullFolder = filteredFolders.find(f => f.id === folder.id)
+                        if (fullFolder) handleFolderClick(fullFolder)
+                      }}
+                      onZoom={(doc) => {
+                        console.log('Zoom:', doc.name)
+                      }}
+                      viewMode={viewMode}
+                      onViewModeChange={setViewMode}
+                    />
                   )}
                 </>
               ) : (
