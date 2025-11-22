@@ -206,7 +206,7 @@ export default function DocumentDetailPage() {
           <div className="mb-6">
             <BreadcrumbNavigation
               items={[
-                { id: fileLocation.sectionId, name: fileLocation.sectionName, path: [fileLocation.sectionId] },
+                { id: fileLocation.sectionId, name: fileLocation.sectionName, path: [fileLocation.sectionId], alwaysClickable: true },
                 ...breadcrumbPath,
               ]}
               onNavigate={(path) => {
@@ -425,6 +425,14 @@ export default function DocumentDetailPage() {
 
               {/* Action Buttons */}
               <div className="pt-4 border-t border-border space-y-2">
+                <Button 
+                  className="w-full"
+                  variant="outline"
+                  onClick={() => router.push(`/file/edit/${documentId}`)}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit File
+                </Button>
                 <Button 
                   className="w-full"
                   onClick={handleLockClick}

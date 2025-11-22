@@ -32,6 +32,7 @@ export default function DocumentsUploadArea({
   const [isDragging, setIsDragging] = useState(false)
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const uploadedFilesRef = useRef<Map<string, File>>(new Map())
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes'
@@ -49,6 +50,9 @@ export default function DocumentsUploadArea({
   }
 
   const simulateUpload = useCallback((file: File, fileId: string) => {
+    // Store the file reference
+    uploadedFilesRef.current.set(fileId, file)
+    
     const fileSize = file.size
     let uploaded = 0
     let startTime = Date.now()
@@ -73,8 +77,8 @@ export default function DocumentsUploadArea({
 
       const progress = (uploaded / fileSize) * 100
 
-      setUploadingFiles((prev) =>
-        prev.map((f) =>
+      setUploadingFiles((prev) => {
+        const updated = prev.map((f) =>
           f.id === fileId
             ? {
                 ...f,
@@ -86,13 +90,25 @@ export default function DocumentsUploadArea({
               }
             : f
         )
-      )
+        
+        // Check if all files are done
+        const allDone = updated.every(f => f.status === 'done')
+        if (allDone && updated.length > 0 && onUploadComplete) {
+          // Get all uploaded files
+          const files = Array.from(uploadedFilesRef.current.values())
+          // Call onUploadComplete with all files
+          setTimeout(() => {
+            onUploadComplete(files)
+            // Clear the ref
+            uploadedFilesRef.current.clear()
+          }, 100)
+        }
+        
+        return updated
+      })
 
       if (progress >= 100) {
         clearInterval(interval)
-        if (onUploadComplete) {
-          onUploadComplete([file])
-        }
       }
 
       lastUpdate = now

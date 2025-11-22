@@ -27,6 +27,8 @@ interface SectionsContextType {
   deleteSection: (id: string) => void
   addFolder: (sectionId: string, name: string, parentPath?: string[]) => void
   updateFolder: (sectionId: string, folderPath: string[], name: string) => void
+  addFile: (sectionId: string, file: File, folderPath?: string[]) => void
+  updateFile: (fileId: string, updates: { name?: string; tags?: string[]; author?: string }) => void
   moveFiles: (
     fileIds: string[],
     destination: { type: 'section' | 'folder'; id: string; path: string[] }
@@ -142,6 +144,135 @@ export function SectionsProvider({ children }: { children: ReactNode }) {
     )
   }, [])
 
+  const addFile = useCallback((sectionId: string, file: File, folderPath: string[] = []) => {
+    // Get file extension
+    const fileExtension = file.name.split('.').pop()?.toLowerCase() || ''
+    
+    // Map common extensions to file types
+    const fileTypeMap: Record<string, string> = {
+      'pdf': 'pdf',
+      'doc': 'docx',
+      'docx': 'docx',
+      'xls': 'xlsx',
+      'xlsx': 'xlsx',
+      'png': 'png',
+      'jpg': 'jpg',
+      'jpeg': 'jpg',
+      'mp4': 'mp4',
+      'zip': 'zip',
+    }
+    
+    const fileType = fileTypeMap[fileExtension] || fileExtension
+    
+    // Format file size
+    const formatFileSize = (bytes: number): string => {
+      if (bytes === 0) return '0 Bytes'
+      const k = 1024
+      const sizes = ['Bytes', 'KB', 'MB', 'GB']
+      const i = Math.floor(Math.log(bytes) / Math.log(k))
+      return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
+    }
+
+    const newFile: FileItem = {
+      id: `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name: file.name,
+      size: formatFileSize(file.size),
+      type: 'file',
+      fileType,
+      lastModified: new Date(file.lastModified || Date.now()).toISOString(),
+      createdAt: new Date().toISOString(),
+      author: 'current.user@example.com',
+      tags: [],
+      isStarred: false,
+      auditLog: [
+        {
+          time: new Date().toISOString(),
+          user: 'current.user@example.com',
+          action: 'Uploaded file'
+        }
+      ]
+    }
+
+    setSections((prev) =>
+      prev.map((section) => {
+        if (section.id !== sectionId) return section
+
+        // If no folder path, add to section root
+        if (folderPath.length === 0) {
+          return {
+            ...section,
+            items: [...(section.items || []), newFile],
+          }
+        }
+
+        // Find folder and add file to it
+        function addToFolder(items: (Folder | FileItem)[], path: string[]): (Folder | FileItem)[] {
+          if (path.length === 0) return items
+          const [id, ...rest] = path
+          return items.map((item) => {
+            if (item.id === id && item.type === 'folder') {
+              if (rest.length === 0) {
+                // Found the destination folder
+                return {
+                  ...item,
+                  items: [...(item.items || []), newFile],
+                }
+              }
+              return {
+                ...item,
+                items: addToFolder(item.items || [], rest),
+              }
+            }
+            return item
+          })
+        }
+
+        return {
+          ...section,
+          items: addToFolder(section.items || [], folderPath),
+        }
+      })
+    )
+  }, [])
+
+  const updateFile = useCallback((fileId: string, updates: { name?: string; tags?: string[]; author?: string }) => {
+    setSections((prev) =>
+      prev.map((section) => {
+        function updateInItems(items: (Folder | FileItem)[], path: string[] = []): (Folder | FileItem)[] {
+          return items.map((item) => {
+            if (item.type === 'file' && item.id === fileId) {
+              return {
+                ...item,
+                name: updates.name ?? item.name,
+                tags: updates.tags ?? item.tags,
+                author: updates.author ?? item.author,
+                auditLog: [
+                  {
+                    time: new Date().toISOString(),
+                    user: 'current.user@example.com',
+                    action: 'Modified metadata'
+                  },
+                  ...(item.auditLog || [])
+                ]
+              }
+            } else if (item.type === 'folder' && item.items) {
+              return {
+                ...item,
+                items: updateInItems(item.items, [...path, item.id]),
+              }
+            }
+            return item
+          })
+        }
+
+        return {
+          ...section,
+          items: updateInItems(section.items || []),
+        }
+      })
+    )
+  }, [])
+
   const moveFiles = useCallback((
     fileIds: string[],
     destination: { type: 'section' | 'folder'; id: string; path: string[] }
@@ -236,6 +367,8 @@ export function SectionsProvider({ children }: { children: ReactNode }) {
         deleteSection,
         addFolder,
         updateFolder,
+        addFile,
+        updateFile,
         moveFiles,
       }}
     >

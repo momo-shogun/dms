@@ -239,7 +239,7 @@ function getFilesFromPath(section: Section, path: string[]): FileItem[] {
 function DocumentsContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { sections, moveFiles } = useSections()
+  const { sections, moveFiles, addFile } = useSections()
   const [isPending, startTransition] = useTransition()
   const [searchTerm, setSearchTerm] = useState(searchParams?.get('q') || '')
   const [sortBy, setSortBy] = useState('lastModified')
@@ -534,7 +534,8 @@ function DocumentsContent() {
   }
 
   const handleEditMetadata = (doc: DocumentItem) => {
-    console.log('Edit Metadata:', doc.name)
+    // Navigate to file edit page
+    router.push(`/file/edit/${doc.id}`)
   }
 
   const handleRetention = (doc: DocumentItem) => {
@@ -608,9 +609,13 @@ function DocumentsContent() {
   }
 
   const handleUploadComplete = (files: File[]) => {
-    // Handle upload complete - refresh documents list
-    console.log('Files uploaded:', files)
-    // In a real app, you would refresh the documents list here
+    // Add each uploaded file to the current section/folder
+    if (!currentSection) return
+    
+    files.forEach((file) => {
+      addFile(currentSection.id, file, folderPath)
+    })
+    
     setShowUploadArea(false)
   }
 
@@ -633,7 +638,37 @@ function DocumentsContent() {
       <DocumentsHeader
         selectedCount={selectedDocuments.length}
         onFolderCreate={handleFolderCreate}
-        onModify={() => console.log('Modify')}
+        onModify={() => {
+          // If a single item is selected, navigate to its edit page
+          if (selectedDocuments.length === 1) {
+            const selectedId = selectedDocuments[0]
+            // Check if it's a file (starts with 'file-') or folder
+            if (selectedId.startsWith('file-')) {
+              const fileId = selectedId.replace('file-', '')
+              router.push(`/file/edit/${fileId}`)
+            } else if (selectedId.startsWith('folder-')) {
+              const folderId = selectedId.replace('folder-', '')
+              router.push(`/folder/edit/${folderId}`)
+            }
+          } else if (selectedDocuments.length === 0) {
+            // If nothing selected, check if we're viewing a folder or section
+            if (currentFolder && folderPath.length > 0) {
+              // We're inside a folder, edit the current folder
+              // Get the last folder ID from the path
+              const folderId = folderPath[folderPath.length - 1]
+              router.push(`/folder/edit/${folderId}`)
+            } else if (currentSection && sectionId) {
+              // We're at section level, edit the current section
+              router.push(`/section/edit/${sectionId}`)
+            } else {
+              // We're at root level, can't modify
+              console.log('Please select a file or folder to modify, or navigate into a section/folder')
+            }
+          } else {
+            // Multiple items selected
+            console.log('Please select only one item to modify')
+          }
+        }}
         onColumns={() => console.log('Columns')}
         onMeta={() => console.log('Meta')}
         onRetention={() => console.log('Retention')}
@@ -666,7 +701,7 @@ function DocumentsContent() {
           ) : currentSection && (
             <BreadcrumbNavigation
               items={[
-                { id: currentSection.id, name: currentSection.name, path: [currentSection.id] },
+                { id: currentSection.id, name: currentSection.name, path: [currentSection.id], alwaysClickable: true },
                 ...breadcrumbPath,
               ]}
               onNavigate={(path) => {
