@@ -11,6 +11,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import type { DocumentItem } from './documents-list-view'
+import { FileTypeIcon } from '@/src/components/file-type-icons'
+import { cn } from '@/lib/utils'
 
 interface DocumentsGalleryViewProps {
   documents: DocumentItem[]
@@ -114,7 +116,11 @@ function DocumentPreview({ document }: { document: DocumentItem }) {
   const content = getDocumentContent()
 
   return (
-    <div className="bg-card border border-border rounded shadow-sm overflow-hidden relative" style={{ aspectRatio: '8.5/11', maxHeight: '500px' }}>
+    <div className={cn(
+      "bg-card border border-border rounded-lg overflow-hidden relative",
+      "shadow-sm hover:shadow-md transition-shadow duration-200",
+      "group-hover:border-primary/20"
+    )} style={{ aspectRatio: '8.5/11', maxHeight: '500px' }}>
       {/* Document Page Content - Full View */}
       <div className="h-full p-8" style={{ fontSize: '11px', lineHeight: '1.6', fontFamily: 'serif' }}>
         {/* Main Title - Centered */}
@@ -176,7 +182,12 @@ export default function DocumentsGalleryView({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`h-7 w-7 p-0 ${viewMode === 'list' ? 'text-blue-600' : 'text-gray-400'}`}
+                  className={cn(
+                    "h-8 w-8 p-0 transition-all duration-200",
+                    viewMode === 'list' 
+                      ? 'text-primary bg-primary/10 scale-110' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                  )}
                   onClick={() => onViewModeChange?.('list')}
                 >
                   <List className="h-4 w-4" />
@@ -189,7 +200,12 @@ export default function DocumentsGalleryView({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`h-7 w-7 p-0 ${viewMode === 'grid' ? 'text-blue-600' : 'text-gray-400'}`}
+                  className={cn(
+                    "h-8 w-8 p-0 transition-all duration-200",
+                    viewMode === 'grid' 
+                      ? 'text-primary bg-primary/10 scale-110' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                  )}
                   onClick={() => onViewModeChange?.('grid')}
                 >
                   <Grid3X3 className="h-4 w-4" />
@@ -206,7 +222,11 @@ export default function DocumentsGalleryView({
         {documents.map((doc) => (
           <div 
             key={doc.id} 
-            className="flex flex-col cursor-pointer group"
+            className={cn(
+              "flex flex-col cursor-pointer group",
+              "transition-all duration-200",
+              "hover:scale-[1.02] hover:-translate-y-1"
+            )}
             onClick={() => onDocumentClick?.(doc)}
           >
             {/* Document Preview */}
@@ -214,15 +234,20 @@ export default function DocumentsGalleryView({
               <DocumentPreview document={doc} />
             </div>
             
-            {/* Document Title */}
-            <h3 className="text-sm font-medium text-primary mb-1 line-clamp-2 group-hover:underline">
-              {doc.name.length > 30 ? `${doc.name.substring(0, 30)}...` : doc.name}
+            {/* Document Info */}
+            <div className="flex items-start gap-2">
+              <div className="mt-0.5 shrink-0">
+                <FileTypeIcon fileType={doc.type} size={16} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-semibold text-foreground mb-1 line-clamp-2 group-hover:text-primary transition-colors">
+                  {doc.name}
             </h3>
-            
-            {/* Date */}
             <p className="text-xs text-muted-foreground">
               {formatDate(doc.lastModified)}
             </p>
+              </div>
+            </div>
           </div>
         ))}
       </div>

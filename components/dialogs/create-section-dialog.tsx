@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { useSections } from "@/lib/sections"
+import { useSections } from "@/lib/sections-context"
 
 interface CreateSectionDialogProps {
   open: boolean
@@ -23,15 +23,30 @@ export function CreateSectionDialog({ open, onOpenChange, section }: CreateSecti
   const { addSection, updateSection } = useSections()
   const [name, setName] = useState(section?.name || "")
 
+  // Reset name when dialog opens/closes or section changes
+  useEffect(() => {
+    if (open) {
+      setName(section?.name || "")
+    } else {
+      // Reset when dialog closes
+      setName("")
+    }
+  }, [open, section])
+
   const handleSubmit = () => {
     if (!name.trim()) return
 
     if (section) {
-      updateSection(section.id, name)
+      updateSection(section.id, name.trim())
     } else {
-      addSection(name)
+      addSection(name.trim())
     }
 
+    setName("")
+    onOpenChange(false)
+  }
+
+  const handleCancel = () => {
     setName("")
     onOpenChange(false)
   }
@@ -59,7 +74,7 @@ export function CreateSectionDialog({ open, onOpenChange, section }: CreateSecti
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={!name.trim()}>

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo } from "react"
+import React, { useState, useMemo, useEffect } from "react"
 import {
   Home,
   FileText,
@@ -26,7 +26,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { useSections } from "@/lib/sections"
+import { useSections } from "@/lib/sections-context"
 import { CreateSectionDialog } from "@/components/dialogs/create-section-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 
@@ -42,6 +42,12 @@ const Sidebar = ({ activeView, onViewChange, activeFolder, onFolderChange }: Sid
   const [documentsExpanded, setDocumentsExpanded] = useState(true)
   const [sectionCreateDialogOpen, setSectionCreateDialogOpen] = useState(false)
   const [editingSection, setEditingSection] = useState<{ id: string; name: string } | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  // Fix hydration error by only rendering interactive components after mount
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Navigation items
   const navItems = useMemo(() => [
@@ -133,6 +139,7 @@ const Sidebar = ({ activeView, onViewChange, activeFolder, onFolderChange }: Sid
           <Folder className="h-4 w-4 shrink-0" />
           <span className="flex-1 truncate">{section.name}</span>
         </button>
+        {mounted && (
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -159,6 +166,7 @@ const Sidebar = ({ activeView, onViewChange, activeFolder, onFolderChange }: Sid
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+        )}
       </div>
     )
   }

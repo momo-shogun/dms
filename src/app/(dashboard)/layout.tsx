@@ -2,20 +2,22 @@
 
 // Dashboard Layout with Sidebar
 
-import { useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useAppDispatch } from '@/src/lib/store/store'
 import { logout } from '@/src/lib/store/slices/auth-slice'
 import Sidebar from '@/components/sidebar'
 import DashboardHeader from '@/src/components/dashboard-header'
+import { SectionsProvider } from '@/lib/sections-context'
 
-export default function DashboardLayout({
+function DashboardLayoutContent({
   children,
 }: {
   children: React.ReactNode
 }) {
   const router = useRouter()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const dispatch = useAppDispatch()
   const [activeView, setActiveView] = useState('dashboard')
   const [activeFolder, setActiveFolder] = useState<string | undefined>()
@@ -29,12 +31,27 @@ export default function DashboardLayout({
     avatar: undefined,
   }
 
-  // Update active view based on pathname
+  // Update active view and folder based on pathname and search params
   useEffect(() => {
-    if (pathname?.includes('/dashboard')) {
+    if (pathname) {
+      // Check if we're on documents page
+      if (pathname.includes('/documents')) {
+        setActiveView('documents')
+        // Get section from search params
+        const sectionId = searchParams?.get('section')
+        if (sectionId) {
+          setActiveFolder(sectionId)
+        } else {
+          setActiveFolder(undefined)
+        }
+      } 
+      // Check if we're on dashboard page (exact match or just /dashboard)
+      else if (pathname === '/dashboard' || pathname.endsWith('/dashboard')) {
       setActiveView('dashboard')
+        setActiveFolder(undefined)
+      }
     }
-  }, [pathname])
+  }, [pathname, searchParams])
 
   const handleViewChange = (view: string) => {
     setActiveView(view)
@@ -60,30 +77,44 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <Sidebar
-        activeView={activeView}
-        onViewChange={handleViewChange}
-        activeFolder={activeFolder}
-        onFolderChange={handleFolderChange}
-      />
-
-      {/* Main content */}
-      <div className="flex-1 flex flex-col">
-        {/* Top navigation */}
-        <DashboardHeader 
-          user={currentUser}
-          onLogout={handleLogout}
+    <SectionsProvider>
+      <div className="min-h-screen bg-gray-50 flex">
+        {/* Sidebar */}
+        <Sidebar
+          activeView={activeView}
+          onViewChange={handleViewChange}
+          activeFolder={activeFolder}
+          onFolderChange={handleFolderChange}
         />
 
-        {/* Page content */}
-        <main className="flex-1">
-          <div className="">
-            {children}
-          </div>
-        </main>
+        {/* Main content */}
+        <div className="flex-1 flex flex-col">
+          {/* Top navigation */}
+          <DashboardHeader 
+            user={currentUser}
+            onLogout={handleLogout}
+          />
+
+          {/* Page content */}
+          <main className="flex-1">
+            <div className="">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </SectionsProvider>
+  )
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DashboardLayoutContent>{children}</DashboardLayoutContent>
+    </Suspense>
   )
 }

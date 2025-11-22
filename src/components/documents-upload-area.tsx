@@ -3,10 +3,11 @@
 // File Upload Component with Progress Tracking
 
 import { useState, useCallback, useRef } from 'react'
-import { Upload, X, Settings, CheckCircle2, Loader2, AlertCircle } from 'lucide-react'
+import { Upload, X, Settings, CheckCircle2, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
 
 export interface UploadingFile {
   id: string
@@ -191,7 +192,7 @@ export default function DocumentsUploadArea({
 
   return (
     <div className="flex gap-6 h-full">
-      {/* Left Side - Drag and Drop Area */}
+      {/* Left Side - Enhanced Drag and Drop Area */}
       <div className={` ${uploadingFiles.length > 0 ? 'w-1/2' : 'w-full'}`}>
         <div
           onDragOver={handleDragOver}
@@ -199,17 +200,39 @@ export default function DocumentsUploadArea({
           onDrop={handleDrop}
           onClick={handleClick}
           className={cn(
-            "border-2 border-dashed rounded-lg p-12 text-center transition-all cursor-pointer h-full flex items-center justify-center",
+            "relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 cursor-pointer h-full flex items-center justify-center overflow-hidden",
+            "bg-gradient-to-br from-background to-muted/30",
             isDragging
-              ? "border-blue-500 bg-blue-50"
-              : "border-gray-300 hover:border-gray-400"
+              ? "border-primary bg-primary/5 shadow-lg shadow-primary/20 scale-[1.02]"
+              : "border-border hover:border-primary/50 hover:bg-accent/30 hover:shadow-md"
           )}
         >
-          <div className="flex flex-col items-center gap-4">
-            <Upload className="h-12 w-12 text-gray-400" />
-            <div className="space-y-1">
-              <p className="text-base font-medium text-gray-900">
-                Click, or drag the file here
+          {/* Animated background gradient on drag */}
+          {isDragging && (
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 animate-pulse" />
+          )}
+          
+          <div className="relative z-10 flex flex-col items-center gap-4">
+            <div className={cn(
+              "p-4 rounded-full transition-all duration-300",
+              isDragging 
+                ? "bg-primary/20 scale-110" 
+                : "bg-muted"
+            )}>
+              <Upload className={cn(
+                "h-12 w-12 transition-all duration-300",
+                isDragging ? "text-primary animate-bounce" : "text-muted-foreground"
+              )} />
+            </div>
+            <div className="space-y-2">
+              <p className={cn(
+                "text-lg font-semibold transition-colors",
+                isDragging ? "text-primary" : "text-foreground"
+              )}>
+                {isDragging ? 'Drop files here' : 'Click or drag files here'}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Supports multiple file uploads
               </p>
             </div>
             <input
@@ -223,64 +246,94 @@ export default function DocumentsUploadArea({
         </div>
       </div>
 
-      {/* Right Side - Upload Progress List */}
+      {/* Right Side - Enhanced Upload Progress List */}
       {uploadingFiles.length > 0 && (
-        <div className=" border rounded-lg bg-white">
-          <div className="border-b p-4">
-            <h3 className="text-sm font-medium text-gray-900">Uploading Files</h3>
+        <div className="w-1/2 border border-border rounded-xl bg-card shadow-md overflow-hidden">
+          <div className="border-b border-border bg-muted/30 px-4 py-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-foreground">
+                Uploading Files ({uploadingFiles.length})
+              </h3>
+              <Badge variant="secondary" className="text-xs">
+                {uploadingFiles.filter(f => f.status === 'uploading').length} active
+              </Badge>
+            </div>
           </div>
           <div className="overflow-y-auto max-h-[600px]">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
+            <div className="divide-y divide-border">
                 {uploadingFiles.map((file) => (
-                  <tr key={file.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate" title={file.name}>
+                <div 
+                  key={file.id} 
+                  className={cn(
+                    "p-4 hover:bg-accent/50 transition-colors",
+                    file.status === 'error' && "bg-destructive/5"
+                  )}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5">
+                      {getStatusIcon(file.status)}
+                    </div>
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-sm font-medium text-foreground truncate" title={file.name}>
                             {file.name}
                           </p>
-                          <div className="mt-1">
-                            <Progress value={file.progress} className="h-1.5" />
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {file.speed.toFixed(2)} KB/s | {formatTime(file.elapsedTime)} | {file.progress.toFixed(2)} % | {formatFileSize(file.uploadedBytes)} | {formatFileSize(file.size)}
-                          </p>
-                        </div>
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
                             handleRemoveFile(file.id)
                           }}
-                          className="ml-2 text-gray-400 hover:text-gray-600"
+                          className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
                         >
                           <X className="h-4 w-4" />
                         </button>
                       </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(file.status)}
-                        <span className="text-sm text-gray-700">{getStatusText(file.status)}</span>
-                        <button className="ml-2 text-gray-400 hover:text-gray-600">
-                          <Settings className="h-4 w-4" />
-                        </button>
+                      
+                      {file.status === 'uploading' && (
+                        <>
+                          <Progress 
+                            value={file.progress} 
+                            className="h-2"
+                          />
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <span>{file.progress.toFixed(1)}%</span>
+                            <span>{formatFileSize(file.uploadedBytes)} / {formatFileSize(file.size)}</span>
+                            <span>{file.speed.toFixed(1)} KB/s</span>
+                            <span>{formatTime(file.elapsedTime)}</span>
+                          </div>
+                        </>
+                      )}
+                      
+                      {file.status === 'done' && (
+                        <p className="text-xs text-green-600 font-medium">
+                          Upload completed successfully
+                        </p>
+                      )}
+                      
+                      {file.status === 'error' && (
+                        <div className="space-y-2">
+                          <p className="text-xs text-destructive font-medium">
+                            Upload failed
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => {
+                              // Retry logic would go here
+                              console.log('Retry upload:', file.id)
+                            }}
+                          >
+                            <RefreshCw className="h-3 w-3 mr-1" />
+                            Retry
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                       </div>
-                    </td>
-                  </tr>
                 ))}
-              </tbody>
-            </table>
+            </div>
           </div>
         </div>
       )}

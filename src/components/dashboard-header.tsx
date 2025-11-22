@@ -2,6 +2,7 @@
 
 // Dashboard Header Component
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Bell,
@@ -36,6 +37,13 @@ export default function DashboardHeader({
   user,
   onLogout 
 }: DashboardHeaderProps) {
+  const [mounted, setMounted] = useState(false)
+
+  // Fix hydration error by only rendering interactive components after mount
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   // Default user if not provided
   const currentUser = user || {
     id: '1',
@@ -62,6 +70,7 @@ export default function DashboardHeader({
           <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200" />
 
           {/* Profile dropdown */}
+          {mounted && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="-m-1.5 flex items-center p-1.5 hover:bg-gray-50 rounded-lg transition-colors">
@@ -104,6 +113,27 @@ export default function DashboardHeader({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          )}
+          {!mounted && (
+            <button className="-m-1.5 flex items-center p-1.5 hover:bg-gray-50 rounded-lg transition-colors">
+              <span className="sr-only">Open user menu</span>
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
+                <AvatarFallback>
+                  {currentUser.name
+                    .split(' ')
+                    .map((n: string) => n[0])
+                    .join('')
+                    .toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="hidden lg:flex lg:items-center">
+                <span className="ml-4 text-sm font-semibold leading-6 text-gray-900">
+                  {currentUser.name}
+                </span>
+              </span>
+            </button>
+          )}
         </div>
       </div>
     </div>

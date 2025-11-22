@@ -28,7 +28,7 @@ const authSlice = createSlice({
         id: `${Date.now()}`,
         email: action.payload.email,
         name: action.payload.email.split('@')[0],
-        role: 'user' as const,
+    role: 'user' as const,
         createdAt: now,
         updatedAt: now,
       }
@@ -47,13 +47,13 @@ const authSlice = createSlice({
       // Simple register - just create user, no checks
       const now = new Date()
       const user: User = {
-        id: `${Date.now()}`,
+      id: `${Date.now()}`,
         email: action.payload.email,
         name: action.payload.name,
-        role: 'user' as const,
+      role: 'user' as const,
         createdAt: now,
         updatedAt: now,
-      }
+    }
     
       state.user = user
       state.isAuthenticated = true

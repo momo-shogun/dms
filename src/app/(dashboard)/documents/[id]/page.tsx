@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Download, Share2, Edit, Clock, Copy, Eye, Trash2, FileText, Calendar as CalendarIcon, User, Tag, File } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -14,7 +14,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useSections, getAllFiles, type FileItem } from '@/lib/sections'
+import { useSections } from '@/lib/sections-context'
+import { getAllFiles, findFileLocation, type FileItem, type Section, type Folder } from '@/lib/sections'
+import BreadcrumbNavigation from '@/src/components/breadcrumb-navigation'
 
 interface InfoFieldProps {
   label: string
@@ -38,14 +40,74 @@ export default function DocumentDetailPage() {
   const { sections } = useSections()
 
   // Find document from all sections
-  const document = (() => {
+  const document = useMemo(() => {
     for (const section of sections) {
       const files = getAllFiles(section)
       const found = files.find((file: FileItem) => file.id === documentId)
       if (found) return found
     }
     return null
-  })()
+  }, [sections, documentId])
+
+  // Find file location for breadcrumb
+  const fileLocation = useMemo(() => {
+    if (!document) return null
+    return findFileLocation(sections, documentId)
+  }, [sections, documentId, document])
+
+  // Build breadcrumb path
+  const breadcrumbPath = useMemo(() => {
+    if (!fileLocation || !document) return []
+    
+    const path: Array<{ id: string; name: string; path: string[] }> = []
+    const section = sections.find(s => s.id === fileLocation.sectionId)
+    if (!section) return []
+    
+    // Helper to find folder by ID recursively
+    function findFolderById(items: (Folder | FileItem)[], folderId: string): Folder | null {
+      for (const item of items) {
+        if (item.type === 'folder' && item.id === folderId) {
+          return item
+        }
+        if (item.type === 'folder' && item.items) {
+          const found = findFolderById(item.items, folderId)
+          if (found) return found
+        }
+      }
+      return null
+    }
+    
+    // Build path for each folder in the folderPath
+    let currentItems: (Folder | FileItem)[] | undefined = section.items
+    const currentPath: string[] = []
+    
+    for (const folderId of fileLocation.folderPath) {
+      if (!currentItems) break
+      
+      const folder = findFolderById(currentItems, folderId)
+      if (folder) {
+        currentPath.push(folder.id)
+        path.push({
+          id: folder.id,
+          name: folder.name,
+          path: [fileLocation.sectionId, ...currentPath],
+        })
+        currentItems = folder.items
+      } else {
+        break
+      }
+    }
+    
+    // Add file name as last item (non-clickable, marked as file)
+    path.push({
+      id: document.id,
+      name: document.name,
+      path: [fileLocation.sectionId, ...fileLocation.folderPath, document.id],
+      isFile: true,
+    })
+    
+    return path
+  }, [fileLocation, document, sections])
 
   if (!document) {
     return (
@@ -61,8 +123,48 @@ export default function DocumentDetailPage() {
     )
   }
 
-  const handleDownload = (format: string) => {
-    console.log(`Downloading in ${format} format`)
+  const handleDownloadAuditLog = (format: 'xlsx' | 'ods' | 'csv' | 'pdf') => {
+    if (!document?.auditLog || document.auditLog.length === 0) {
+      console.log('No audit log to download')
+      return
+    }
+
+    // Format audit log data
+    const auditData = document.auditLog.map(entry => ({
+      Time: new Date(entry.time).toLocaleString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }),
+      User: entry.user,
+      Action: entry.action
+    }))
+
+    if (format === 'csv') {
+      // Generate CSV
+      const headers = ['Time', 'User', 'Action']
+      const rows = auditData.map(row => [row.Time, row.User, row.Action])
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n')
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = `${document.name}_audit_log.csv`
+      link.click()
+    } else {
+      // For other formats, log for now (in production, use proper libraries)
+      console.log(`Downloading audit log in ${format.toUpperCase()} format:`, auditData)
+      // In production, you would use libraries like:
+      // - xlsx for XLSX
+      // - jsPDF for PDF
+      // - ods-writer for ODS
+    }
   }
 
   const handleLockClick = () => {
@@ -99,15 +201,29 @@ export default function DocumentDetailPage() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Back Button */}
-        <Button 
-          variant="ghost" 
-          className="mb-6"
-          onClick={() => router.push('/documents')}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Documents
-        </Button>
+        {/* Breadcrumb */}
+        {fileLocation && breadcrumbPath.length > 0 && (
+          <div className="mb-6">
+            <BreadcrumbNavigation
+              items={[
+                { id: fileLocation.sectionId, name: fileLocation.sectionName, path: [fileLocation.sectionId] },
+                ...breadcrumbPath,
+              ]}
+              onNavigate={(path) => {
+                if (path.length === 1 && path[0] === fileLocation.sectionId) {
+                  router.push(`/documents?section=${fileLocation.sectionId}`)
+                } else if (path[path.length - 1] === documentId) {
+                  // File name clicked - do nothing (already on file page)
+                  return
+                } else {
+                  // Navigate to folder
+                  const pathToFolder = path.slice(1) // Remove section ID
+                  router.push(`/documents?section=${fileLocation.sectionId}&folder=${pathToFolder.join('/')}`)
+                }
+              }}
+            />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
@@ -200,40 +316,43 @@ export default function DocumentDetailPage() {
             <div className="bg-card border border-border rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-card-foreground">Audit Log</h2>
+                {document.auditLog && document.auditLog.length > 0 && (
                 <div className="flex items-center gap-2 text-sm">
                   <span className="text-muted-foreground">Download Log:</span>
                   <button 
-                    onClick={() => handleDownload('xlsx')}
+                      onClick={() => handleDownloadAuditLog('xlsx')}
                     className="text-primary hover:underline hover:text-primary/80 transition-colors"
                   >
                     XLSX
                   </button>
                   <span className="text-muted-foreground">/</span>
                   <button 
-                    onClick={() => handleDownload('ods')}
+                      onClick={() => handleDownloadAuditLog('ods')}
                     className="text-primary hover:underline hover:text-primary/80 transition-colors"
                   >
                     ODS
                   </button>
                   <span className="text-muted-foreground">/</span>
                   <button 
-                    onClick={() => handleDownload('csv')}
+                      onClick={() => handleDownloadAuditLog('csv')}
                     className="text-primary hover:underline hover:text-primary/80 transition-colors"
                   >
                     CSV
                   </button>
                   <span className="text-muted-foreground">/</span>
                   <button 
-                    onClick={() => handleDownload('pdf')}
+                      onClick={() => handleDownloadAuditLog('pdf')}
                     className="text-primary hover:underline hover:text-primary/80 transition-colors"
                   >
                     PDF
                   </button>
                 </div>
+                )}
               </div>
 
               {/* Audit Log Table */}
               <div className="overflow-x-auto">
+                {document.auditLog && document.auditLog.length > 0 ? (
                 <table className="w-full">
                   <thead className="border-b border-border">
                     <tr>
@@ -243,9 +362,10 @@ export default function DocumentDetailPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-b border-border">
+                      {document.auditLog.map((entry, index) => (
+                        <tr key={index} className="border-b border-border">
                       <td className="py-3 px-2 text-sm text-foreground">
-                        {new Date(document.createdAt).toLocaleString('en-IN', {
+                            {new Date(entry.time).toLocaleString('en-IN', {
                           day: '2-digit',
                           month: '2-digit',
                           year: 'numeric',
@@ -256,31 +376,19 @@ export default function DocumentDetailPage() {
                       </td>
                       <td className="py-3 px-2 text-sm">
                         <a href="#" className="text-primary hover:underline hover:text-primary/80 transition-colors">
-                          {document.author.toLowerCase().replace(' ', '')}@example.com
+                              {entry.user}
                         </a>
                       </td>
-                      <td className="py-3 px-2 text-sm text-foreground">Added file</td>
+                          <td className="py-3 px-2 text-sm text-foreground">{entry.action}</td>
                     </tr>
-                    <tr className="border-b border-border">
-                      <td className="py-3 px-2 text-sm text-foreground">
-                        {new Date(document.lastModified).toLocaleString('en-IN', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit'
-                        })}
-                      </td>
-                      <td className="py-3 px-2 text-sm">
-                        <a href="#" className="text-primary hover:underline hover:text-primary/80 transition-colors">
-                          {document.author.toLowerCase().replace(' ', '')}@example.com
-                        </a>
-                      </td>
-                      <td className="py-3 px-2 text-sm text-foreground">Modified metadata</td>
-                    </tr>
+                      ))}
                   </tbody>
                 </table>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>No audit log entries available</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

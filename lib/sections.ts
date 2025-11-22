@@ -33,6 +33,12 @@ export interface Folder {
   items?: (Folder | FileItem)[]
 }
 
+export interface AuditLogEntry {
+  time: string
+  user: string
+  action: string
+}
+
 export interface FileItem {
   id: string
   name: string
@@ -44,6 +50,7 @@ export interface FileItem {
   author: string
   tags: string[]
   isStarred: boolean
+  auditLog?: AuditLogEntry[]
 }
 
 type Item = Folder | FileItem
@@ -57,12 +64,13 @@ export function useSections() {
 
   const [sections, setSections] = useState<Section[]>(initialSections)
 
-  // Load sections from JSON on mount
+  // Load sections from JSON on mount only once - don't reset if sections already exist
   useEffect(() => {
-    if (isValidSectionArray(sectionsData.sections)) {
+    // Only initialize if sections array is empty (first mount)
+    if (sections.length === 0 && isValidSectionArray(sectionsData.sections)) {
       setSections(sectionsData.sections)
     }
-  }, [])
+  }, []) // Empty deps - only run once on mount
 
   const addSection = useCallback((name: string) => {
     const newSection: Section = {
@@ -163,6 +171,116 @@ export function useSections() {
     )
   }, [])
 
+  // Helper function to move file(s) to a destination
+  const moveFiles = useCallback((
+    fileIds: string[],
+    destination: { type: 'section' | 'folder'; id: string; path: string[] }
+  ) => {
+    setSections((prev) => {
+      const newSections = prev.map(s => ({ ...s, items: s.items ? [...s.items] : [] }))
+      const filesToMove: FileItem[] = []
+      const sourceLocations: Array<{ sectionId: string; folderPath: string[] }> = []
+
+      // Helper to find and remove files
+      function findAndRemoveFiles(
+        items: Item[],
+        sectionId: string,
+        folderPath: string[] = []
+      ): void {
+        for (let i = items.length - 1; i >= 0; i--) {
+          const item = items[i]
+          if (item.type === 'file' && fileIds.includes(item.id)) {
+            filesToMove.push({ ...item })
+            sourceLocations.push({ sectionId, folderPath: [...folderPath] })
+            items.splice(i, 1)
+          } else if (item.type === 'folder' && item.items) {
+            findAndRemoveFiles(item.items, sectionId, [...folderPath, item.id])
+          }
+        }
+      }
+
+      // Step 1: Find and remove all files to move
+      for (const section of newSections) {
+        if (section.items) {
+          findAndRemoveFiles(section.items, section.id)
+        }
+      }
+
+      // Step 2: Add files to destination with audit log
+      for (const section of newSections) {
+        if (destination.type === 'section' && section.id === destination.id) {
+          // Add to section root
+          if (!section.items) section.items = []
+          filesToMove.forEach((file, index) => {
+            const sourceLocation = sourceLocations[index]
+            const sourceSection = prev.find(s => s.id === sourceLocation.sectionId)
+            const sourceName = sourceSection?.name || 'Unknown'
+            
+            const updatedFile: FileItem = {
+              ...file,
+              auditLog: [
+                {
+                  time: new Date().toISOString(),
+                  user: 'current.user@example.com',
+                  action: `Moved file from ${sourceName} to ${section.name}`
+                },
+                ...(file.auditLog || [])
+              ]
+            }
+            section.items!.push(updatedFile)
+          })
+          break
+        } else if (destination.type === 'folder' && section.id === destination.path[0]) {
+          // Add to folder
+          function addToFolder(items: Item[], folderPath: string[]): boolean {
+            if (folderPath.length === 0) return false
+            const [id, ...rest] = folderPath
+            const item = items.find(i => i.id === id && i.type === 'folder')
+            if (!item || item.type !== 'folder') return false
+            
+            if (rest.length === 0) {
+              // Found the destination folder
+              if (!item.items) item.items = []
+              
+              filesToMove.forEach((file, index) => {
+                const sourceLocation = sourceLocations[index]
+                const sourceSection = prev.find(s => s.id === sourceLocation.sectionId)
+                const sourceName = sourceSection?.name || 'Unknown'
+                const destName = item.name
+                
+                const updatedFile: FileItem = {
+                  ...file,
+                  auditLog: [
+                    {
+                      time: new Date().toISOString(),
+                      user: 'current.user@example.com',
+                      action: `Moved file from ${sourceName} to ${destName}`
+                    },
+                    ...(file.auditLog || [])
+                  ]
+                }
+                item.items.push(updatedFile)
+              })
+              return true
+            }
+            
+            if (item.items) {
+              return addToFolder(item.items, rest)
+            }
+            return false
+          }
+
+          if (section.items) {
+            addToFolder(section.items, destination.path.slice(1))
+          }
+          break
+        }
+      }
+
+      return newSections
+    })
+  }, [])
+
   return {
     sections,
     addSection,
@@ -170,6 +288,7 @@ export function useSections() {
     deleteSection,
     addFolder,
     updateFolder,
+    moveFiles,
   }
 }
 
@@ -219,6 +338,39 @@ export function findItemByPath(
 
   if (section.items) {
     return findInItems(section.items, rest) || null
+  }
+  return null
+}
+
+// Helper function to find file location (section and folder path)
+export function findFileLocation(
+  sections: Section[],
+  fileId: string
+): { sectionId: string; sectionName: string; folderPath: string[] } | null {
+  for (const section of sections) {
+    function searchInItems(items: Item[], currentPath: string[] = []): string[] | null {
+      for (const item of items) {
+        if (item.type === 'file' && item.id === fileId) {
+          return currentPath
+        }
+        if (item.type === 'folder' && item.items) {
+          const found = searchInItems(item.items, [...currentPath, item.id])
+          if (found !== null) return found
+        }
+      }
+      return null
+    }
+
+    if (section.items) {
+      const folderPath = searchInItems(section.items)
+      if (folderPath !== null) {
+        return {
+          sectionId: section.id,
+          sectionName: section.name,
+          folderPath,
+        }
+      }
+    }
   }
   return null
 }
