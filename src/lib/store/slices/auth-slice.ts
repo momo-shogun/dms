@@ -23,17 +23,17 @@ const authSlice = createSlice({
   reducers: {
     login: (state, action: PayloadAction<{ email: string; password: string }>) => {
       // Simple login - just create user from email/password, no checks
-      const now = new Date().toISOString()
-      const user = {
+      const now = new Date()
+      const user: User = {
         id: `${Date.now()}`,
         email: action.payload.email,
         name: action.payload.email.split('@')[0],
-    role: 'user' as const,
+        role: 'user' as const,
         createdAt: now,
         updatedAt: now,
       }
       
-      state.user = user as User
+      state.user = user
       state.isAuthenticated = true
       state.error = null
       
@@ -45,17 +45,17 @@ const authSlice = createSlice({
     
     register: (state, action: PayloadAction<{ name: string; email: string; password: string }>) => {
       // Simple register - just create user, no checks
-      const now = new Date().toISOString()
-      const user = {
-      id: `${Date.now()}`,
+      const now = new Date()
+      const user: User = {
+        id: `${Date.now()}`,
         email: action.payload.email,
         name: action.payload.name,
-      role: 'user' as const,
+        role: 'user' as const,
         createdAt: now,
         updatedAt: now,
-    }
+      }
     
-      state.user = user as User
+      state.user = user
       state.isAuthenticated = true
       state.error = null
       
@@ -78,7 +78,7 @@ const authSlice = createSlice({
     
     initializeAuth: (state) => {
       // Load user from localStorage on app start
-    if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined') {
         const storedUser = localStorage.getItem('user_info')
         if (storedUser) {
           try {
@@ -86,10 +86,10 @@ const authSlice = createSlice({
             // Keep dates as strings (serializable) - convert to Date only when needed
             state.user = user as User
             state.isAuthenticated = true
-      } catch (error) {
-        localStorage.removeItem('user_info')
-      }
-    }
+          } catch (error) {
+            localStorage.removeItem('user_info')
+          }
+        }
       }
     },
     

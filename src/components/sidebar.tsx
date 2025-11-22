@@ -26,7 +26,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { useData } from "@/lib/data-context"
+import { useSections } from "@/lib/sections"
 import { CreateSectionDialog } from "@/components/dialogs/create-section-dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 
@@ -38,7 +38,7 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ activeView, onViewChange, activeFolder, onFolderChange }: SidebarProps) => {
-  const { sections, deleteSection } = useData()
+  const { sections, deleteSection } = useSections()
   const [documentsExpanded, setDocumentsExpanded] = useState(true)
   const [sectionCreateDialogOpen, setSectionCreateDialogOpen] = useState(false)
   const [editingSection, setEditingSection] = useState<{ id: string; name: string } | null>(null)

@@ -12,6 +12,8 @@ import {
   SortAsc,
   SortDesc,
   Plus,
+  ChevronRight,
+  Folder as FolderIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,33 +28,115 @@ import DocumentsListView from '@/src/components/documents-list-view'
 import DocumentsGalleryView from '@/src/components/documents-gallery-view'
 import DocumentsUploadArea from '@/src/components/documents-upload-area'
 import DocumentsHeader from '@/src/components/documents-header'
+import { CreateFolderDialog } from '@/components/dialogs/create-folder-dialog'
+import { useSections, getAllFiles, type Section, type Folder, type FileItem } from '@/lib/sections'
 import type { DocumentItem } from '@/src/components/documents-list-view'
-import documentsData from './data.json'
+
+// Helper function to convert FileItem to DocumentItem
+function fileItemToDocumentItem(file: FileItem, sectionId: string): DocumentItem {
+  return {
+    id: file.id,
+    name: file.name,
+    size: file.size,
+    type: file.fileType,
+    lastModified: file.lastModified,
+    createdAt: file.createdAt,
+    author: file.author,
+    tags: file.tags,
+    isStarred: file.isStarred,
+    sectionId: sectionId,
+  }
+}
+
+// Helper function to find folder by path in nested structure
+function findFolderInSection(section: Section, path: string[]): Folder | null {
+  if (path.length === 0) return null
+  
+  function findInItems(items: (Folder | FileItem)[], ids: string[]): Folder | null {
+    if (ids.length === 0) return null
+    const [id, ...remaining] = ids
+    const item = items.find(i => i.id === id)
+    if (!item || item.type !== 'folder') return null
+    if (remaining.length === 0) return item
+    if (item.items) {
+      return findInItems(item.items, remaining)
+    }
+    return null
+  }
+  
+  if (section.items) {
+    return findInItems(section.items, path)
+  }
+  return null
+}
+
+// Helper function to get all files from a folder path
+function getFilesFromPath(section: Section, path: string[]): FileItem[] {
+  if (path.length === 0) {
+    return getAllFiles(section)
+  }
+  
+  const folder = findFolderInSection(section, path)
+  if (!folder || !folder.items) return []
+  
+  const files: FileItem[] = []
+  function traverse(items: (Folder | FileItem)[]) {
+    for (const item of items) {
+      if (item.type === 'file') {
+        files.push(item)
+      } else if (item.type === 'folder' && item.items) {
+        traverse(item.items)
+      }
+    }
+  }
+  traverse(folder.items)
+  return files
+}
 
 function DocumentsContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { sections } = useSections()
   const [searchTerm, setSearchTerm] = useState(searchParams?.get('q') || '')
   const [sortBy, setSortBy] = useState('lastModified')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [filterType, setFilterType] = useState('all')
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
   const [showUploadArea, setShowUploadArea] = useState(false)
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([])
+  const [isFolderDialogOpen, setIsFolderDialogOpen] = useState(false)
   
-  // Get section ID from URL params
+  // Get section ID and folder path from URL params
   const sectionId = searchParams?.get('section') || null
-
-  // Use static data from JSON
-  const allDocuments = documentsData.documents
+  const folderParam = searchParams?.get('folder')
+  const folderPath = folderParam ? folderParam.split('/') : []
   
-  // Filter by section if sectionId is provided
-  const displayDocuments = useMemo(() => {
+  // Get current section (default to first section if none specified)
+  const currentSection = useMemo(() => {
     if (sectionId) {
-      return allDocuments.filter(doc => doc.sectionId === sectionId)
+      return sections.find(s => s.id === sectionId) || sections[0]
     }
-    return allDocuments
-  }, [sectionId, allDocuments])
+    return sections[0] || null
+  }, [sectionId, sections])
+
+  // Get current folder if folderPath is provided
+  const currentFolder = useMemo(() => {
+    if (folderPath.length > 0 && currentSection) {
+      return findFolderInSection(currentSection, folderPath)
+    }
+    return null
+  }, [folderPath, currentSection])
+  
+  // Get documents from current section/folder
+  const displayDocuments = useMemo(() => {
+    if (!currentSection) return []
+    
+    const files = folderPath.length > 0 
+      ? getFilesFromPath(currentSection, folderPath)
+      : getAllFiles(currentSection)
+    
+    return files.map((file) => fileItemToDocumentItem(file, currentSection.id))
+  }, [currentSection, folderPath])
 
   const filteredDocuments = useMemo(() => {
     return displayDocuments
@@ -67,10 +151,11 @@ function DocumentsContent() {
     })
     .filter((doc) => {
       if (filterType === 'all') return true
-      return doc.type === filterType
+      return doc.type.toLowerCase() === filterType.toLowerCase()
     })
     .sort((a, b) => {
-      let aValue: any, bValue: any
+      let aValue: string | number | Date
+      let bValue: string | number | Date
 
       switch (sortBy) {
         case 'name':
@@ -91,11 +176,15 @@ function DocumentsContent() {
       }
 
       if (sortOrder === 'asc') {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+        if (aValue < bValue) return -1
+        if (aValue > bValue) return 1
+        return 0
       } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+        if (aValue > bValue) return -1
+        if (aValue < bValue) return 1
+        return 0
       }
-      }) as DocumentItem[]
+    }) as DocumentItem[]
   }, [displayDocuments, searchTerm, filterType, sortBy, sortOrder])
 
   const fileTypes = [...new Set(displayDocuments.map(doc => doc.type))]
@@ -192,12 +281,21 @@ function DocumentsContent() {
     setSearchTerm(query)
   }
 
+  const handleFolderCreate = () => {
+    setIsFolderDialogOpen(true)
+  }
+
+  const handleFolderCreated = (name: string) => {
+    // Folder creation will be handled by the dialog
+    // Navigation can be added here if needed
+  }
+
   return (
     <div className="flex flex-col h-full">
       {/* Documents Header */}
       <DocumentsHeader
         selectedCount={selectedDocuments.length}
-        onFolderCreate={() => console.log('Create folder')}
+        onFolderCreate={handleFolderCreate}
         onModify={() => console.log('Modify')}
         onColumns={() => console.log('Columns')}
         onMeta={() => console.log('Meta')}
@@ -217,6 +315,26 @@ function DocumentsContent() {
 
       <div className="flex-1 overflow-auto">
         <div className="space-y-6 p-6">
+          {/* Breadcrumb */}
+          {(currentSection || currentFolder) && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {currentSection && (
+                <>
+                  <span className="hover:text-foreground cursor-pointer" onClick={() => router.push(`/documents?section=${currentSection.id}`)}>
+                    {currentSection.name}
+                  </span>
+                  {currentFolder && <ChevronRight className="h-4 w-4" />}
+                </>
+              )}
+              {currentFolder && (
+                <div className="flex items-center gap-2 text-foreground">
+                  <FolderIcon className="h-4 w-4" />
+                  <span className="font-medium">{currentFolder.name}</span>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex space-x-2">
@@ -305,6 +423,15 @@ function DocumentsContent() {
           )}
         </div>
       </div>
+
+      {/* Create Folder Dialog */}
+      {currentSection && (
+        <CreateFolderDialog
+          open={isFolderDialogOpen}
+          onOpenChange={setIsFolderDialogOpen}
+          sectionId={currentSection.id}
+        />
+      )}
     </div>
   )
 }

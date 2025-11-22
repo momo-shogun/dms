@@ -11,26 +11,27 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { useData } from "@/lib/data-context"
+import { useSections } from "@/lib/sections"
 
 interface CreateFolderDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   sectionId: string
-  folder?: { id: string; name: string } | null
+  folder?: { id: string; name: string; path?: string[] } | null
+  parentPath?: string[]
 }
 
-export function CreateFolderDialog({ open, onOpenChange, sectionId, folder }: CreateFolderDialogProps) {
-  const { addFolder, updateFolder } = useData()
+export function CreateFolderDialog({ open, onOpenChange, sectionId, folder, parentPath = [] }: CreateFolderDialogProps) {
+  const { addFolder, updateFolder } = useSections()
   const [name, setName] = useState(folder?.name || "")
 
   const handleSubmit = () => {
     if (!name.trim()) return
 
-    if (folder) {
-      updateFolder(sectionId, folder.id, name)
+    if (folder && folder.path) {
+      updateFolder(sectionId, folder.path, name)
     } else {
-      addFolder(sectionId, name)
+      addFolder(sectionId, name, parentPath)
     }
 
     setName("")

@@ -8,7 +8,6 @@ import { useAppDispatch } from '@/src/lib/store/store'
 import { logout } from '@/src/lib/store/slices/auth-slice'
 import Sidebar from '@/components/sidebar'
 import DashboardHeader from '@/src/components/dashboard-header'
-import { DataProvider } from '@/lib/data-context'
 
 export default function DashboardLayout({
   children,
@@ -61,32 +60,30 @@ export default function DashboardLayout({
   }
 
   return (
-    <DataProvider>
-      <div className="min-h-screen bg-gray-50 flex">
-        {/* Sidebar */}
-        <Sidebar
-          activeView={activeView}
-          onViewChange={handleViewChange}
-          activeFolder={activeFolder}
-          onFolderChange={handleFolderChange}
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <Sidebar
+        activeView={activeView}
+        onViewChange={handleViewChange}
+        activeFolder={activeFolder}
+        onFolderChange={handleFolderChange}
+      />
+
+      {/* Main content */}
+      <div className="flex-1 flex flex-col">
+        {/* Top navigation */}
+        <DashboardHeader 
+          user={currentUser}
+          onLogout={handleLogout}
         />
 
-        {/* Main content */}
-        <div className="flex-1 flex flex-col">
-          {/* Top navigation */}
-          <DashboardHeader 
-            user={currentUser}
-            onLogout={handleLogout}
-          />
-
-          {/* Page content */}
-          <main className="flex-1">
-            <div className="">
-              {children}
-            </div>
-          </main>
-        </div>
+        {/* Page content */}
+        <main className="flex-1">
+          <div className="">
+            {children}
+          </div>
+        </main>
       </div>
-    </DataProvider>
+    </div>
   )
 }

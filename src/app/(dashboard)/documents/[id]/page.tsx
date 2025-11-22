@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import documentsData from '../data.json'
+import { useSections, getAllFiles, type FileItem } from '@/lib/sections'
 
 interface InfoFieldProps {
   label: string
@@ -35,9 +35,17 @@ export default function DocumentDetailPage() {
   const [isLockModalOpen, setIsLockModalOpen] = useState(false)
   const [lockUntil, setLockUntil] = useState('')
   const [isLocked, setIsLocked] = useState(false)
+  const { sections } = useSections()
 
-  // Find document from data
-  const document = documentsData.documents.find(doc => doc.id === documentId)
+  // Find document from all sections
+  const document = (() => {
+    for (const section of sections) {
+      const files = getAllFiles(section)
+      const found = files.find((file: FileItem) => file.id === documentId)
+      if (found) return found
+    }
+    return null
+  })()
 
   if (!document) {
     return (
@@ -141,7 +149,7 @@ export default function DocumentDetailPage() {
                   {/* Tags */}
                   {document.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {document.tags.map((tag) => (
+                      {document.tags.map((tag: string) => (
                         <Badge key={tag} variant="secondary">
                           {tag}
                         </Badge>
@@ -183,7 +191,7 @@ export default function DocumentDetailPage() {
                   })} 
                 />
                 <InfoField label="OCR Language" value="English" />
-                <InfoField label="Document Type" value={document.type.toUpperCase()} />
+                <InfoField label="Document Type" value={document.fileType.toUpperCase()} />
                 <InfoField label="Author" value={document.author} />
               </div>
             </div>

@@ -56,7 +56,7 @@ function verifyToken(token: string): boolean {
   // 3. Validate issuer
   // 4. Check against blacklist
   
-  return token && token.startsWith('mock_token_')
+  return Boolean(token && typeof token === 'string' && token.startsWith('mock_token_'))
 }
 
 export function middleware(request: NextRequest) {

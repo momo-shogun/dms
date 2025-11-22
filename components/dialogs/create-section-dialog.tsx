@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { useData } from "@/lib/data-context"
+import { useSections } from "@/lib/sections"
 
 interface CreateSectionDialogProps {
   open: boolean
@@ -20,7 +20,7 @@ interface CreateSectionDialogProps {
 }
 
 export function CreateSectionDialog({ open, onOpenChange, section }: CreateSectionDialogProps) {
-  const { addSection, updateSection } = useData()
+  const { addSection, updateSection } = useSections()
   const [name, setName] = useState(section?.name || "")
 
   const handleSubmit = () => {

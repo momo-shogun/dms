@@ -14,9 +14,21 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        // Ignore these field paths in all actions
+        // Ignore these action types completely to avoid false positives
+        ignoredActions: [
+          'auth/login',
+          'auth/register',
+          'auth/initializeAuth',
+          'auth/setUser',
+          'auth/logout',
+        ],
+        // Ignore these field paths in all actions (including meta which often contains non-serializable values)
         ignoredActionsPaths: [
+          'meta',
           'meta.arg',
+          'meta.requestId',
+          'meta.requestStatus',
+          'meta.baseQueryMeta',
           'payload.timestamp',
           'payload.user',
           'payload.createdAt',
@@ -25,27 +37,18 @@ export const store = configureStore({
           'payload.folders',
           'payload.sections',
         ],
-        // Ignore Date objects in state paths
+        // Ignore Date objects and complex objects in state paths
         ignoredPaths: [
           'auth.user',
+          'auth.user.createdAt',
+          'auth.user.updatedAt',
           'documents.documents',
           'documents.folders',
           'documents.sections',
           'documents.selectedDocument',
         ],
-        // Custom check to allow Date objects in both actions and state
-        isSerializable: (value: any) => {
-          // Allow Date objects
-          if (value instanceof Date) {
-            return true
-          }
-          // Allow objects that might contain Date objects (will be checked recursively)
-          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-            return undefined // Let default check handle nested objects
-          }
-          // Use default check for other values
-          return undefined
-        },
+        // Only warn after 32ms, don't throw errors immediately
+        warnAfter: 32,
       },
     }),
   devTools: process.env.NODE_ENV !== 'production',

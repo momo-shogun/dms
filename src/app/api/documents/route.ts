@@ -226,10 +226,14 @@ export async function POST(request: NextRequest) {
     // 3. Save document metadata to database
     // 4. Generate secure URL
 
-    const newDocument = {
+    const newDocument: typeof mockDocuments[0] = {
       id: `doc_${Date.now()}`,
-      ...validatedData,
+      name: validatedData.name,
+      type: validatedData.type,
+      size: validatedData.size,
       url: `/documents/${validatedData.name}`,
+      folderId: validatedData.folderId || '',
+      tags: validatedData.tags,
       createdAt: new Date(),
       updatedAt: new Date(),
       createdBy: user.id,
