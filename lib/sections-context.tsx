@@ -29,8 +29,10 @@ interface SectionsContextType {
   updateFolder: (sectionId: string, folderPath: string[], name: string) => void
   addFile: (sectionId: string, file: File, folderPath?: string[]) => void
   updateFile: (fileId: string, updates: { name?: string; tags?: string[]; author?: string }) => void
+  deleteFile: (fileId: string) => void
+  duplicateFile: (fileId: string) => void
   moveFiles: (
-    fileIds: string[],
+    itemIds: string[],
     destination: { type: 'section' | 'folder'; id: string; path: string[] }
   ) => void
 }
@@ -273,84 +275,286 @@ export function SectionsProvider({ children }: { children: ReactNode }) {
     )
   }, [])
 
+  const deleteFile = useCallback((fileId: string) => {
+    setSections((prev) =>
+      prev.map((section) => {
+        function deleteInItems(items: (Folder | FileItem)[]): (Folder | FileItem)[] {
+          return items
+            .filter((item) => {
+              // Remove files that match the ID
+              if (item.type === 'file' && item.id === fileId) {
+                return false
+              }
+              return true
+            })
+            .map((item) => {
+              // For folders, recursively delete files from nested items
+              if (item.type === 'folder' && item.items) {
+                return {
+                  ...item,
+                  items: deleteInItems(item.items),
+                }
+              }
+              return item
+            })
+        }
+
+        return {
+          ...section,
+          items: deleteInItems(section.items || []),
+        }
+      })
+    )
+  }, [])
+
+  const duplicateFile = useCallback((fileId: string) => {
+    setSections((prev) => {
+      let fileToDuplicate: FileItem | null = null
+      let fileLocation: { sectionId: string; folderPath: string[] } | null = null
+
+      // Find the file to duplicate
+      for (const section of prev) {
+        function findFile(items: (Folder | FileItem)[], path: string[] = []): FileItem | null {
+          for (const item of items) {
+            if (item.type === 'file' && item.id === fileId) {
+              fileLocation = { sectionId: section.id, folderPath: path }
+              return item
+            } else if (item.type === 'folder' && item.items) {
+              const found = findFile(item.items, [...path, item.id])
+              if (found) return found
+            }
+          }
+          return null
+        }
+
+        if (section.items) {
+          const found = findFile(section.items)
+          if (found) {
+            fileToDuplicate = found
+            break
+          }
+        }
+      }
+
+      if (!fileToDuplicate || !fileLocation) return prev
+
+      // Create duplicate
+      const duplicatedFile: FileItem = {
+        ...fileToDuplicate,
+        id: `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        name: `${fileToDuplicate.name.replace(/\.[^/.]+$/, '')} (Copy)${fileToDuplicate.name.match(/\.[^/.]+$/)?.[0] || ''}`,
+        auditLog: [
+          {
+            time: new Date().toISOString(),
+            user: 'current.user@example.com',
+            action: 'Duplicated file'
+          },
+          ...(fileToDuplicate.auditLog || [])
+        ]
+      }
+
+      // Add duplicate to the same location
+      return prev.map((section) => {
+        if (section.id !== fileLocation!.sectionId) return section
+
+        function addDuplicate(items: (Folder | FileItem)[], path: string[]): (Folder | FileItem)[] {
+          if (path.length === 0) {
+            // Add to current level
+            return [...items, duplicatedFile]
+          }
+
+          const [id, ...rest] = path
+          return items.map((item) => {
+            if (item.id === id && item.type === 'folder') {
+              return {
+                ...item,
+                items: addDuplicate(item.items || [], rest),
+              }
+            }
+            return item
+          })
+        }
+
+        return {
+          ...section,
+          items: addDuplicate(section.items || [], fileLocation!.folderPath),
+        }
+      })
+    })
+  }, [])
+
   const moveFiles = useCallback((
-    fileIds: string[],
+    itemIds: string[],
     destination: { type: 'section' | 'folder'; id: string; path: string[] }
   ) => {
     setSections((prev) => {
-      const newSections = prev.map(s => ({ ...s, items: [...(s.items || [])] }))
-      const filesToMove: FileItem[] = []
-      const sourceLocations: Array<{ sectionId: string; folderPath: string[] }> = []
+      // Normalize IDs (remove 'file-' or 'folder-' prefix if present)
+      const normalizedIds = itemIds.map(id => {
+        if (id.startsWith('file-')) return id.replace('file-', '')
+        if (id.startsWith('folder-')) return id.replace('folder-', '')
+        return id
+      })
+      
+      const itemsToMove: Array<{ item: Folder | FileItem; sourceLocation: { sectionId: string; folderPath: string[] } }> = []
 
-      function findAndRemoveFiles(
+      // Step 1: Find and collect items (files and folders) to move
+      function findItemsToMove(
         items: (Folder | FileItem)[],
         sectionId: string,
         folderPath: string[] = []
       ): void {
-        for (let i = items.length - 1; i >= 0; i--) {
-          const item = items[i]
-          if (item.type === 'file' && fileIds.includes(item.id)) {
-            filesToMove.push({ ...item })
-            sourceLocations.push({ sectionId, folderPath: [...folderPath] })
-            items.splice(i, 1)
-          } else if (item.type === 'folder' && item.items) {
-            findAndRemoveFiles(item.items, sectionId, [...folderPath, item.id])
+        for (const item of items) {
+          if (normalizedIds.includes(item.id)) {
+            // Deep clone the item to avoid reference issues
+            const clonedItem = item.type === 'folder' 
+              ? { ...item, items: item.items ? JSON.parse(JSON.stringify(item.items)) : [] }
+              : { ...item }
+            itemsToMove.push({
+              item: clonedItem as Folder | FileItem,
+              sourceLocation: { sectionId, folderPath: [...folderPath] }
+            })
+          }
+          // Continue searching in nested folders
+          if (item.type === 'folder' && item.items) {
+            findItemsToMove(item.items, sectionId, [...folderPath, item.id])
           }
         }
       }
 
-      for (const section of newSections) {
+      for (const section of prev) {
         if (section.items) {
-          findAndRemoveFiles(section.items, section.id)
+          findItemsToMove(section.items, section.id)
         }
       }
 
-      for (const file of filesToMove) {
-        if (destination.type === 'section') {
-          const section = newSections.find(s => s.id === destination.id)
-          if (section) {
-            if (!section.items) section.items = []
-            section.items.push(file)
-          }
-        } else if (destination.type === 'folder') {
-          const section = newSections.find(s => s.id === destination.path[0])
-          if (section && section.items) {
-            function addToFolder(items: (Folder | FileItem)[], folderPath: string[]): boolean {
-              if (folderPath.length === 0) return false
-              const [id, ...rest] = folderPath
-              const item = items.find(i => i.id === id && i.type === 'folder')
-              if (!item || item.type !== 'folder') return false
-              
-              if (rest.length === 0) {
-                if (!item.items) item.items = []
-                const sourceLocation = sourceLocations[filesToMove.indexOf(file)]
-                const sourceSection = prev.find(s => s.id === sourceLocation.sectionId)
-                const sourceName = sourceSection?.name || 'Unknown'
-                const destName = item.name
-                
-                const updatedFile: FileItem = {
-                  ...file,
-                  auditLog: [
-                    {
-                      time: new Date().toISOString(),
-                      user: 'current.user@example.com',
-                      action: `Moved file from ${sourceName} to ${destName}`
-                    },
-                    ...(file.auditLog || [])
-                  ]
-                }
-                item.items.push(updatedFile)
-                return true
-              }
-              
-              if (item.items) {
-                return addToFolder(item.items, rest)
-              }
+      // Step 2: Remove items from source locations (immutable)
+      function removeItems(
+        items: (Folder | FileItem)[],
+        sectionId: string,
+        folderPath: string[] = []
+      ): (Folder | FileItem)[] {
+        return items
+          .filter((item) => {
+            // Remove if ID matches
+            if (normalizedIds.includes(item.id)) {
               return false
             }
+            return true
+          })
+          .map((item) => {
+            // Recursively remove from nested folders
+            if (item.type === 'folder' && item.items) {
+              return {
+                ...item,
+                items: removeItems(item.items, sectionId, [...folderPath, item.id]),
+              }
+            }
+            return item
+          })
+      }
 
-            addToFolder(section.items, destination.path.slice(1))
+      // Step 3: Create new sections with items removed
+      let newSections = prev.map((section) => ({
+        ...section,
+        items: section.items ? removeItems(section.items, section.id) : [],
+      }))
+
+      // Step 4: Add items to destination (immutable)
+      for (const { item, sourceLocation } of itemsToMove) {
+        const sourceSection = prev.find(s => s.id === sourceLocation.sectionId)
+        const sourceName = sourceSection?.name || 'Unknown'
+        
+        if (destination.type === 'section') {
+          newSections = newSections.map((section) => {
+            if (section.id !== destination.id) return section
+            
+            if (item.type === 'file') {
+              // Add audit log entry for file
+              const updatedFile: FileItem = {
+                ...item,
+                auditLog: [
+                  {
+                    time: new Date().toISOString(),
+                    user: 'current.user@example.com',
+                    action: `Moved file from ${sourceName} to ${section.name}`
+                  },
+                  ...(item.auditLog || [])
+                ]
+              }
+              
+              return {
+                ...section,
+                items: [...(section.items || []), updatedFile],
+              }
+            } else {
+              // Move folder to section
+              return {
+                ...section,
+                items: [...(section.items || []), item],
+              }
+            }
+          })
+        } else if (destination.type === 'folder') {
+          const sectionId = destination.path[0]
+          
+          function addToFolder(
+            items: (Folder | FileItem)[],
+            folderPath: string[]
+          ): (Folder | FileItem)[] {
+            if (folderPath.length === 0) return items
+            
+            const [id, ...rest] = folderPath
+            return items.map((folderItem) => {
+              if (folderItem.id === id && folderItem.type === 'folder') {
+                if (rest.length === 0) {
+                  // Found destination folder
+                  const destName = folderItem.name
+                  
+                  if (item.type === 'file') {
+                    // Add file with audit log
+                    const updatedFile: FileItem = {
+                      ...item,
+                      auditLog: [
+                        {
+                          time: new Date().toISOString(),
+                          user: 'current.user@example.com',
+                          action: `Moved file from ${sourceName} to ${destName}`
+                        },
+                        ...(item.auditLog || [])
+                      ]
+                    }
+                    
+                    return {
+                      ...folderItem,
+                      items: [...(folderItem.items || []), updatedFile],
+                    }
+                  } else {
+                    // Add folder
+                    return {
+                      ...folderItem,
+                      items: [...(folderItem.items || []), item],
+                    }
+                  }
+                } else {
+                  // Continue navigating
+                  return {
+                    ...folderItem,
+                    items: addToFolder(folderItem.items || [], rest),
+                  }
+                }
+              }
+              return folderItem
+            })
           }
+
+          newSections = newSections.map((section) => {
+            if (section.id !== sectionId) return section
+            
+            return {
+              ...section,
+              items: section.items ? addToFolder(section.items, destination.path.slice(1)) : [],
+            }
+          })
         }
       }
 
@@ -369,6 +573,8 @@ export function SectionsProvider({ children }: { children: ReactNode }) {
         updateFolder,
         addFile,
         updateFile,
+        deleteFile,
+        duplicateFile,
         moveFiles,
       }}
     >

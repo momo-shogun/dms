@@ -34,8 +34,13 @@ function DashboardLayoutContent({
   // Update active view and folder based on pathname and search params
   useEffect(() => {
     if (pathname) {
+      // Check if we're on search page
+      if (pathname.includes('/search')) {
+        setActiveView('search')
+        setActiveFolder(undefined)
+      }
       // Check if we're on documents page
-      if (pathname.includes('/documents')) {
+      else if (pathname.includes('/documents')) {
         setActiveView('documents')
         // Get section from search params
         const sectionId = searchParams?.get('section')
@@ -47,7 +52,7 @@ function DashboardLayoutContent({
       } 
       // Check if we're on dashboard page (exact match or just /dashboard)
       else if (pathname === '/dashboard' || pathname.endsWith('/dashboard')) {
-      setActiveView('dashboard')
+        setActiveView('dashboard')
         setActiveFolder(undefined)
       }
     }

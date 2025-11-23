@@ -239,9 +239,8 @@ function getFilesFromPath(section: Section, path: string[]): FileItem[] {
 function DocumentsContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { sections, moveFiles, addFile } = useSections()
+  const { sections, moveFiles, addFile, deleteFile, duplicateFile } = useSections()
   const [isPending, startTransition] = useTransition()
-  const [searchTerm, setSearchTerm] = useState(searchParams?.get('q') || '')
   const [sortBy, setSortBy] = useState('lastModified')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [filterType, setFilterType] = useState('all')
@@ -421,12 +420,7 @@ function DocumentsContent() {
 
   // Filter and sort folders
   const filteredFolders = useMemo(() => {
-    let filtered = folders.filter((folder) => {
-      if (searchTerm) {
-        return folder.name.toLowerCase().includes(searchTerm.toLowerCase())
-    }
-      return true
-    })
+    let filtered = [...folders]
     
     // Sort folders by name (same as files when sortBy is 'name')
     if (sortBy === 'name' || sortBy === 'lastModified') {
@@ -440,20 +434,11 @@ function DocumentsContent() {
     }
     
     return filtered
-  }, [folders, searchTerm, sortBy, sortOrder])
+  }, [folders, sortBy, sortOrder])
 
   // Filter files
   const filteredDocuments = useMemo(() => {
     return displayDocuments
-    .filter((doc) => {
-      if (searchTerm) {
-        return (
-          doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          doc.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-        )
-      }
-      return true
-    })
     .filter((doc) => {
       if (filterType === 'all') return true
       return doc.type.toLowerCase() === filterType.toLowerCase()
@@ -490,7 +475,7 @@ function DocumentsContent() {
         return 0
       }
       }) as DocumentItem[]
-  }, [displayDocuments, searchTerm, filterType, sortBy, sortOrder])
+  }, [displayDocuments, filterType, sortBy, sortOrder])
 
   const fileTypes = [...new Set(displayDocuments.map(doc => doc.type))]
 
@@ -568,31 +553,70 @@ function DocumentsContent() {
     if (selectedDocuments.length > 0) {
       moveFiles(selectedDocuments, destination)
       setSelectedDocuments([])
+      // Force a re-render by refreshing the router
+      router.refresh()
       // Optionally show a success message
       console.log('Documents moved successfully')
     }
   }
 
   const handleBulkDownload = () => {
-    console.log('Download selected documents:', selectedDocuments)
-    selectedDocuments.forEach(id => {
-      const doc = filteredDocuments.find(d => d.id === id)
-      if (doc) handleDownload(doc)
+    if (selectedDocuments.length === 0) return
+    
+    // Extract file IDs (remove 'file-' prefix if present)
+    const fileIds = selectedDocuments
+      .filter(id => id.startsWith('file-'))
+      .map(id => id.replace('file-', ''))
+    
+    // Find and download each file
+    fileIds.forEach(fileId => {
+      const doc = filteredDocuments.find(d => d.id === fileId)
+      if (doc) {
+        handleDownload(doc)
+      }
     })
+    
+    // Also check folders for files (if needed)
+    // For now, only download files
   }
 
   const handleBulkDelete = () => {
-    console.log('Delete selected documents:', selectedDocuments)
-    // In real app, show confirmation dialog
+    if (selectedDocuments.length === 0) return
+    
+    // Show confirmation
+    if (!confirm(`Are you sure you want to delete ${selectedDocuments.length} item(s)?`)) {
+      return
+    }
+    
+    // Extract file IDs (remove 'file-' prefix if present)
+    const fileIds = selectedDocuments
+      .filter(id => id.startsWith('file-'))
+      .map(id => id.replace('file-', ''))
+    
+    // Delete each file
+    fileIds.forEach(fileId => {
+      deleteFile(fileId)
+    })
+    
+    // Clear selection
     setSelectedDocuments([])
   }
 
   const handleBulkDuplicate = () => {
-    console.log('Duplicate selected documents:', selectedDocuments)
-    selectedDocuments.forEach(id => {
-      const doc = filteredDocuments.find(d => d.id === id)
-      if (doc) handleDuplicate(doc)
+    if (selectedDocuments.length === 0) return
+    
+    // Extract file IDs (remove 'file-' prefix if present)
+    const fileIds = selectedDocuments
+      .filter(id => id.startsWith('file-'))
+      .map(id => id.replace('file-', ''))
+    
+    // Duplicate each file
+    fileIds.forEach(fileId => {
+      duplicateFile(fileId)
     })
+    
+    // Clear selection after duplication
+    setSelectedDocuments([])
   }
 
   const handleSortChange = (column: string) => {
@@ -619,9 +643,6 @@ function DocumentsContent() {
     setShowUploadArea(false)
   }
 
-  const handleSearch = (query: string) => {
-    setSearchTerm(query)
-  }
 
   const handleFolderCreate = () => {
     setIsFolderDialogOpen(true)
@@ -676,9 +697,6 @@ function DocumentsContent() {
         onAuditLog={() => console.log('Audit Log')}
         onNumbering={() => console.log('Numbering')}
         onUpload={handleUploadClick}
-        onSearch={handleSearch}
-        searchValue={searchTerm}
-        onSearchChange={setSearchTerm}
         onMove={handleMove}
         onDownload={handleBulkDownload}
         onDelete={handleBulkDelete}
@@ -777,24 +795,13 @@ function DocumentsContent() {
               </div>
 
               {/* Active Filters Badges */}
-              {(filterType !== 'all' || searchTerm) && (
+              {filterType !== 'all' && (
                 <div className="flex items-center gap-2 flex-wrap">
                   {filterType !== 'all' && (
                     <Badge variant="secondary" className="text-xs font-medium">
                       {filterType.toUpperCase()}
                       <button
                         onClick={() => setFilterType('all')}
-                        className="ml-1.5 hover:text-destructive"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  )}
-                  {searchTerm && (
-                    <Badge variant="secondary" className="text-xs font-medium">
-                      Search: {searchTerm}
-                      <button
-                        onClick={() => setSearchTerm('')}
                         className="ml-1.5 hover:text-destructive"
                       >
                         <X className="h-3 w-3" />

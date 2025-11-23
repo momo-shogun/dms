@@ -2,74 +2,176 @@
   "sections": [
     {
       "id": "s1",
-      "name": "Inbox",
+      "name": "Production",
       "type": "section",
       "items": [
         {
           "id": "f1",
-          "name": "PNA",
+          "name": "Team Member",
           "type": "folder",
           "items": [
             {
-              "id": "1",
-              "name": "Project Proposal Q4 2024.pdf",
-              "size": "2.4 MB",
-              "type": "file",
-              "fileType": "pdf",
-              "lastModified": "2024-11-15T10:30:00Z",
-              "createdAt": "2024-11-10T08:15:00Z",
-              "author": "Amit Kumar",
-              "tags": ["project", "proposal", "q4"],
-              "isStarred": true,
-              "auditLog": [
+              "id": "f1-1",
+              "name": "Rajesh Kumar",
+              "type": "folder",
+              "items": [
                 {
-                  "time": "2024-11-15T10:30:00Z",
-                  "user": "amit.kumar@example.com",
-                  "action": "Modified metadata"
+                  "id": "1",
+                  "name": "PAN Card - Rajesh Kumar.pdf",
+                  "size": "245 KB",
+                  "type": "file",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-15T10:30:00Z",
+                  "createdAt": "2024-11-10T08:15:00Z",
+                  "author": "HR Team",
+                  "tags": ["pan", "card", "rajesh", "kumar", "production", "team-member", "identity"],
+                  "isStarred": false,
+                  "auditLog": [
+                    {
+                      "time": "2024-11-15T10:30:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Modified metadata"
+                    },
+                    {
+                      "time": "2024-11-10T08:15:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Added file"
+                    }
+                  ]
                 },
                 {
-                  "time": "2024-11-14T14:20:00Z",
-                  "user": "amit.kumar@example.com",
-                  "action": "Moved file from Projects to Inbox"
-                },
-                {
-                  "time": "2024-11-12T09:15:00Z",
-                  "user": "amit.kumar@example.com",
-                  "action": "Previewed file"
-                },
-                {
-                  "time": "2024-11-10T08:15:00Z",
-                  "user": "amit.kumar@example.com",
-                  "action": "Added file"
+                  "id": "2",
+                  "name": "Aadhar Card - Rajesh Kumar.pdf",
+                  "size": "312 KB",
+                  "type": "file",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-15T10:35:00Z",
+                  "createdAt": "2024-11-10T08:20:00Z",
+                  "author": "HR Team",
+                  "tags": ["aadhar", "card", "rajesh", "kumar", "production", "team-member", "identity"],
+                  "isStarred": false,
+                  "auditLog": [
+                    {
+                      "time": "2024-11-15T10:35:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Modified metadata"
+                    },
+                    {
+                      "time": "2024-11-10T08:20:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Added file"
+                    }
+                  ]
                 }
               ]
             },
             {
-              "id": "2",
-              "name": "Budget Analysis.xlsx",
-              "size": "1.8 MB",
-              "type": "file",
-              "fileType": "xlsx",
-              "lastModified": "2024-11-15T08:20:00Z",
-              "createdAt": "2024-11-12T14:30:00Z",
-              "author": "Priya Singh",
-              "tags": ["budget", "analysis", "finance"],
-              "isStarred": false,
-              "auditLog": [
+              "id": "f1-2",
+              "name": "Priya Sharma",
+              "type": "folder",
+              "items": [
                 {
-                  "time": "2024-11-15T08:20:00Z",
-                  "user": "priya.singh@example.com",
-                  "action": "Modified metadata"
+                  "id": "3",
+                  "name": "PAN Card - Priya Sharma.pdf",
+                  "size": "238 KB",
+                  "type": "file",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-14T14:20:00Z",
+                  "createdAt": "2024-11-12T14:30:00Z",
+                  "author": "HR Team",
+                  "tags": ["pan", "card", "priya", "sharma", "production", "team-member", "identity"],
+                  "isStarred": false,
+                  "auditLog": [
+                    {
+                      "time": "2024-11-14T14:20:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Modified metadata"
+                    },
+                    {
+                      "time": "2024-11-12T14:30:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Added file"
+                    }
+                  ]
                 },
                 {
-                  "time": "2024-11-13T16:45:00Z",
-                  "user": "priya.singh@example.com",
-                  "action": "Downloaded file"
+                  "id": "4",
+                  "name": "Aadhar Card - Priya Sharma.pdf",
+                  "size": "298 KB",
+                  "type": "file",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-14T14:25:00Z",
+                  "createdAt": "2024-11-12T14:35:00Z",
+                  "author": "HR Team",
+                  "tags": ["aadhar", "card", "priya", "sharma", "production", "team-member", "identity"],
+                  "isStarred": false,
+                  "auditLog": [
+                    {
+                      "time": "2024-11-14T14:25:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Modified metadata"
+                    },
+                    {
+                      "time": "2024-11-12T14:35:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Added file"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "f1-3",
+              "name": "Amit Patel",
+              "type": "folder",
+              "items": [
+                {
+                  "id": "5",
+                  "name": "PAN Card - Amit Patel.pdf",
+                  "size": "267 KB",
+                  "type": "file",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-13T09:15:00Z",
+                  "createdAt": "2024-11-10T15:30:00Z",
+                  "author": "HR Team",
+                  "tags": ["pan", "card", "amit", "patel", "production", "team-member", "identity"],
+                  "isStarred": false,
+                  "auditLog": [
+                    {
+                      "time": "2024-11-13T09:15:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Modified metadata"
+                    },
+                    {
+                      "time": "2024-11-10T15:30:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Added file"
+                    }
+                  ]
                 },
                 {
-                  "time": "2024-11-12T14:30:00Z",
-                  "user": "priya.singh@example.com",
-                  "action": "Added file"
+                  "id": "6",
+                  "name": "Aadhar Card - Amit Patel.pdf",
+                  "size": "305 KB",
+                  "type": "file",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-13T09:20:00Z",
+                  "createdAt": "2024-11-10T15:35:00Z",
+                  "author": "HR Team",
+                  "tags": ["aadhar", "card", "amit", "patel", "production", "team-member", "identity"],
+                  "isStarred": false,
+                  "auditLog": [
+                    {
+                      "time": "2024-11-13T09:20:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Modified metadata"
+                    },
+                    {
+                      "time": "2024-11-10T15:35:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Added file"
+                    }
+                  ]
                 }
               ]
             }
@@ -79,225 +181,357 @@
     },
     {
       "id": "s2",
-      "name": "Documents",
+      "name": "IT",
       "type": "section",
       "items": [
         {
           "id": "f2",
-          "name": "Projects",
+          "name": "Team Member",
           "type": "folder",
           "items": [
             {
-              "id": "3",
-              "name": "Team Meeting Notes.docx",
-              "size": "234 KB",
-              "type": "file",
-              "fileType": "docx",
-              "lastModified": "2024-11-14T16:45:00Z",
-              "createdAt": "2024-11-14T16:00:00Z",
-              "author": "Rahul Sharma",
-              "tags": ["meeting", "notes", "team"],
-              "isStarred": true,
-              "auditLog": [
-                {
-                  "time": "2024-11-14T16:45:00Z",
-                  "user": "rahul.sharma@example.com",
-                  "action": "Modified metadata"
-                },
-                {
-                  "time": "2024-11-14T16:30:00Z",
-                  "user": "rahul.sharma@example.com",
-                  "action": "Previewed file"
-                },
-                {
-                  "time": "2024-11-14T16:00:00Z",
-                  "user": "rahul.sharma@example.com",
-                  "action": "Added file"
-                }
-              ]
-            },
-            {
               "id": "f2-1",
-              "name": "Q4 Projects",
+              "name": "Sneha Reddy",
               "type": "folder",
               "items": [
                 {
                   "id": "7",
-                  "name": "Marketing Strategy.pptx",
-                  "size": "5.6 MB",
+                  "name": "PAN Card - Sneha Reddy.pdf",
+                  "size": "251 KB",
                   "type": "file",
-                  "fileType": "pptx",
-                  "lastModified": "2024-11-14T11:30:00Z",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-16T11:30:00Z",
                   "createdAt": "2024-11-14T11:00:00Z",
-                  "author": "Marketing Team",
-                  "tags": ["marketing", "strategy", "presentation"],
+                  "author": "HR Team",
+                  "tags": ["pan", "card", "sneha", "reddy", "it", "team-member", "identity"],
                   "isStarred": false,
                   "auditLog": [
                     {
-                      "time": "2024-11-14T11:30:00Z",
-                      "user": "marketing.team@example.com",
+                      "time": "2024-11-16T11:30:00Z",
+                      "user": "hr.team@example.com",
                       "action": "Modified metadata"
                     },
                     {
-                      "time": "2024-11-14T11:15:00Z",
-                      "user": "marketing.team@example.com",
-                      "action": "Moved file from Projects to Q4 Projects"
-                    },
-                    {
                       "time": "2024-11-14T11:00:00Z",
-                      "user": "marketing.team@example.com",
+                      "user": "hr.team@example.com",
                       "action": "Added file"
                     }
                   ]
                 },
                 {
-                  "id": "f2-1-1",
-                  "name": "Sub Projects",
-                  "type": "folder",
-                  "items": [
+                  "id": "8",
+                  "name": "Aadhar Card - Sneha Reddy.pdf",
+                  "size": "319 KB",
+                  "type": "file",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-16T11:35:00Z",
+                  "createdAt": "2024-11-14T11:05:00Z",
+                  "author": "HR Team",
+                  "tags": ["aadhar", "card", "sneha", "reddy", "it", "team-member", "identity"],
+                  "isStarred": false,
+                  "auditLog": [
                     {
-                      "id": "8",
-                      "name": "User Research Data.csv",
-                      "size": "456 KB",
-                      "type": "file",
-                      "fileType": "csv",
-                      "lastModified": "2024-11-13T09:45:00Z",
-                      "createdAt": "2024-11-13T09:00:00Z",
-                      "author": "UX Team",
-                      "tags": ["research", "data", "user"],
-                      "isStarred": false,
-                      "auditLog": [
-                        {
-                          "time": "2024-11-13T09:45:00Z",
-                          "user": "ux.team@example.com",
-                          "action": "Modified metadata"
-                        },
-                        {
-                          "time": "2024-11-13T09:20:00Z",
-                          "user": "ux.team@example.com",
-                          "action": "Downloaded file"
-                        },
-                        {
-                          "time": "2024-11-13T09:00:00Z",
-                          "user": "ux.team@example.com",
-                          "action": "Added file"
-                        }
-                      ]
+                      "time": "2024-11-16T11:35:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Modified metadata"
+                    },
+                    {
+                      "time": "2024-11-14T11:05:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Added file"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "f2-2",
+              "name": "Vikram Singh",
+              "type": "folder",
+              "items": [
+                {
+                  "id": "9",
+                  "name": "PAN Card - Vikram Singh.pdf",
+                  "size": "243 KB",
+                  "type": "file",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-15T16:45:00Z",
+                  "createdAt": "2024-11-13T16:00:00Z",
+                  "author": "HR Team",
+                  "tags": ["pan", "card", "vikram", "singh", "it", "team-member", "identity"],
+                  "isStarred": false,
+                  "auditLog": [
+                    {
+                      "time": "2024-11-15T16:45:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Modified metadata"
+                    },
+                    {
+                      "time": "2024-11-13T16:00:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Added file"
+                    }
+                  ]
+                },
+                {
+                  "id": "10",
+                  "name": "Aadhar Card - Vikram Singh.pdf",
+                  "size": "301 KB",
+                  "type": "file",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-15T16:50:00Z",
+                  "createdAt": "2024-11-13T16:05:00Z",
+                  "author": "HR Team",
+                  "tags": ["aadhar", "card", "vikram", "singh", "it", "team-member", "identity"],
+                  "isStarred": false,
+                  "auditLog": [
+                    {
+                      "time": "2024-11-15T16:50:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Modified metadata"
+                    },
+                    {
+                      "time": "2024-11-13T16:05:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Added file"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "f2-3",
+              "name": "Anjali Mehta",
+              "type": "folder",
+              "items": [
+                {
+                  "id": "11",
+                  "name": "PAN Card - Anjali Mehta.pdf",
+                  "size": "259 KB",
+                  "type": "file",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-14T09:45:00Z",
+                  "createdAt": "2024-11-12T09:00:00Z",
+                  "author": "HR Team",
+                  "tags": ["pan", "card", "anjali", "mehta", "it", "team-member", "identity"],
+                  "isStarred": false,
+                  "auditLog": [
+                    {
+                      "time": "2024-11-14T09:45:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Modified metadata"
+                    },
+                    {
+                      "time": "2024-11-12T09:00:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Added file"
+                    }
+                  ]
+                },
+                {
+                  "id": "12",
+                  "name": "Aadhar Card - Anjali Mehta.pdf",
+                  "size": "307 KB",
+                  "type": "file",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-14T09:50:00Z",
+                  "createdAt": "2024-11-12T09:05:00Z",
+                  "author": "HR Team",
+                  "tags": ["aadhar", "card", "anjali", "mehta", "it", "team-member", "identity"],
+                  "isStarred": false,
+                  "auditLog": [
+                    {
+                      "time": "2024-11-14T09:50:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Modified metadata"
+                    },
+                    {
+                      "time": "2024-11-12T09:05:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Added file"
                     }
                   ]
                 }
               ]
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "name": "Finance",
+      "type": "section",
+      "items": [
         {
           "id": "f3",
-          "name": "Invoices",
-          "type": "folder",
-          "items": []
-        },
-        {
-          "id": "f4",
-          "name": "Contracts",
+          "name": "Team Member",
           "type": "folder",
           "items": [
             {
-              "id": "5",
-              "name": "Contract Agreement.pdf",
-              "size": "890 KB",
-              "type": "file",
-              "fileType": "pdf",
-              "lastModified": "2024-11-12T09:15:00Z",
-              "createdAt": "2024-11-10T15:30:00Z",
-              "author": "Legal Team",
-              "tags": ["contract", "legal", "agreement"],
-              "isStarred": false,
-              "auditLog": [
+              "id": "f3-1",
+              "name": "Rahul Verma",
+              "type": "folder",
+              "items": [
                 {
-                  "time": "2024-11-12T09:15:00Z",
-                  "user": "legal.team@example.com",
-                  "action": "Modified metadata"
+                  "id": "13",
+                  "name": "PAN Card - Rahul Verma.pdf",
+                  "size": "248 KB",
+                  "type": "file",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-16T14:20:00Z",
+                  "createdAt": "2024-11-16T14:00:00Z",
+                  "author": "HR Team",
+                  "tags": ["pan", "card", "rahul", "verma", "finance", "team-member", "identity"],
+                  "isStarred": false,
+                  "auditLog": [
+                    {
+                      "time": "2024-11-16T14:20:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Modified metadata"
+                    },
+                    {
+                      "time": "2024-11-16T14:00:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Added file"
+                    }
+                  ]
                 },
                 {
-                  "time": "2024-11-11T14:20:00Z",
-                  "user": "legal.team@example.com",
-                  "action": "Previewed file"
-                },
-                {
-                  "time": "2024-11-10T15:30:00Z",
-                  "user": "legal.team@example.com",
-                  "action": "Added file"
+                  "id": "14",
+                  "name": "Aadhar Card - Rahul Verma.pdf",
+                  "size": "314 KB",
+                  "type": "file",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-16T14:25:00Z",
+                  "createdAt": "2024-11-16T14:05:00Z",
+                  "author": "HR Team",
+                  "tags": ["aadhar", "card", "rahul", "verma", "finance", "team-member", "identity"],
+                  "isStarred": false,
+                  "auditLog": [
+                    {
+                      "time": "2024-11-16T14:25:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Modified metadata"
+                    },
+                    {
+                      "time": "2024-11-16T14:05:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Added file"
+                    }
+                  ]
                 }
               ]
-            }
-          ]
-        },
-        {
-          "id": "f5",
-          "name": "Personal",
-          "type": "folder",
-          "items": []
-        },
-        {
-          "id": "4",
-          "name": "Design Mockups.zip",
-          "size": "15.2 MB",
-          "type": "file",
-          "fileType": "zip",
-          "lastModified": "2024-11-13T11:20:00Z",
-          "createdAt": "2024-11-13T10:00:00Z",
-          "author": "Sneha Patel",
-          "tags": ["design", "mockups", "ui"],
-          "isStarred": false,
-          "auditLog": [
-            {
-              "time": "2024-11-13T11:20:00Z",
-              "user": "sneha.patel@example.com",
-              "action": "Modified metadata"
             },
             {
-              "time": "2024-11-13T10:30:00Z",
-              "user": "sneha.patel@example.com",
-              "action": "Downloaded file"
+              "id": "f3-2",
+              "name": "Kavita Desai",
+              "type": "folder",
+              "items": [
+                {
+                  "id": "15",
+                  "name": "PAN Card - Kavita Desai.pdf",
+                  "size": "256 KB",
+                  "type": "file",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-15T08:20:00Z",
+                  "createdAt": "2024-11-13T14:30:00Z",
+                  "author": "HR Team",
+                  "tags": ["pan", "card", "kavita", "desai", "finance", "team-member", "identity"],
+                  "isStarred": false,
+                  "auditLog": [
+                    {
+                      "time": "2024-11-15T08:20:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Modified metadata"
+                    },
+                    {
+                      "time": "2024-11-13T14:30:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Added file"
+                    }
+                  ]
+                },
+                {
+                  "id": "16",
+                  "name": "Aadhar Card - Kavita Desai.pdf",
+                  "size": "302 KB",
+                  "type": "file",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-15T08:25:00Z",
+                  "createdAt": "2024-11-13T14:35:00Z",
+                  "author": "HR Team",
+                  "tags": ["aadhar", "card", "kavita", "desai", "finance", "team-member", "identity"],
+                  "isStarred": false,
+                  "auditLog": [
+                    {
+                      "time": "2024-11-15T08:25:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Modified metadata"
+                    },
+                    {
+                      "time": "2024-11-13T14:35:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Added file"
+                    }
+                  ]
+                }
+              ]
             },
             {
-              "time": "2024-11-13T10:00:00Z",
-              "user": "sneha.patel@example.com",
-              "action": "Added file"
-            }
-          ]
-        },
-        {
-          "id": "6",
-          "name": "Financial Report 2024.xlsx",
-          "size": "3.2 MB",
-          "type": "file",
-          "fileType": "xlsx",
-          "lastModified": "2024-11-16T14:20:00Z",
-          "createdAt": "2024-11-16T14:00:00Z",
-          "author": "Finance Team",
-          "tags": ["finance", "report", "2024"],
-          "isStarred": true,
-          "auditLog": [
-            {
-              "time": "2024-11-16T14:20:00Z",
-              "user": "edj78323@gmail.com",
-              "action": "Moved file from Projects to Finance"
-            },
-            {
-              "time": "2024-11-16T14:15:00Z",
-              "user": "edj78323@gmail.com",
-              "action": "Previewed file"
-            },
-            {
-              "time": "2024-11-16T14:10:00Z",
-              "user": "edj78323@gmail.com",
-              "action": "Downloaded file"
-            },
-            {
-              "time": "2024-11-16T14:00:00Z",
-              "user": "finance.team@example.com",
-              "action": "Added file"
+              "id": "f3-3",
+              "name": "Mohit Agarwal",
+              "type": "folder",
+              "items": [
+                {
+                  "id": "17",
+                  "name": "PAN Card - Mohit Agarwal.pdf",
+                  "size": "241 KB",
+                  "type": "file",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-14T11:20:00Z",
+                  "createdAt": "2024-11-12T11:00:00Z",
+                  "author": "HR Team",
+                  "tags": ["pan", "card", "mohit", "agarwal", "finance", "team-member", "identity"],
+                  "isStarred": false,
+                  "auditLog": [
+                    {
+                      "time": "2024-11-14T11:20:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Modified metadata"
+                    },
+                    {
+                      "time": "2024-11-12T11:00:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Added file"
+                    }
+                  ]
+                },
+                {
+                  "id": "18",
+                  "name": "Aadhar Card - Mohit Agarwal.pdf",
+                  "size": "308 KB",
+                  "type": "file",
+                  "fileType": "pdf",
+                  "lastModified": "2024-11-14T11:25:00Z",
+                  "createdAt": "2024-11-12T11:05:00Z",
+                  "author": "HR Team",
+                  "tags": ["aadhar", "card", "mohit", "agarwal", "finance", "team-member", "identity"],
+                  "isStarred": false,
+                  "auditLog": [
+                    {
+                      "time": "2024-11-14T11:25:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Modified metadata"
+                    },
+                    {
+                      "time": "2024-11-12T11:05:00Z",
+                      "user": "hr.team@example.com",
+                      "action": "Added file"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }

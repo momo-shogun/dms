@@ -3,6 +3,7 @@
 // Documents Header Component - Matches screenshot design
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   FolderPlus,
   Settings,
@@ -40,9 +41,6 @@ interface DocumentsHeaderProps {
   onAuditLog?: () => void
   onNumbering?: () => void
   onUpload?: () => void
-  onSearch?: (query: string) => void
-  searchValue?: string
-  onSearchChange?: (value: string) => void
   onMove?: () => void
   onDownload?: () => void
   onDelete?: () => void
@@ -60,23 +58,18 @@ export default function DocumentsHeader({
   onAuditLog,
   onNumbering,
   onUpload,
-  onSearch,
-  searchValue = '',
-  onSearchChange,
   onMove,
   onDownload,
   onDelete,
   onDuplicate,
 }: DocumentsHeaderProps) {
-  const [localSearchValue, setLocalSearchValue] = useState(searchValue)
-
-  const handleSearchChange = (value: string) => {
-    setLocalSearchValue(value)
-    onSearchChange?.(value)
-  }
+  const router = useRouter()
+  const [localSearchValue, setLocalSearchValue] = useState('')
 
   const handleSearch = () => {
-    onSearch?.(localSearchValue)
+    if (localSearchValue.trim()) {
+      router.push(`/search?query=${encodeURIComponent(localSearchValue.trim())}`)
+    }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -155,7 +148,7 @@ export default function DocumentsHeader({
                 type="text"
                 placeholder="Search docs, tags, etc"
                 value={localSearchValue}
-                onChange={(e) => handleSearchChange(e.target.value)}
+                onChange={(e) => setLocalSearchValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 className="w-64 bg-white border-gray-300 rounded-md px-3 py-2 h-9 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
